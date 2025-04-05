@@ -40,3 +40,7 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Ignore files
+src/main/resources/application.properties
+.vscode/
