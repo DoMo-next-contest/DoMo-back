@@ -24,6 +24,11 @@ public class User {
     private String name;
     private String email;
     private String refreshToken;
+    private int userCoin;
+    private int detailPreference;
+    private int workPace;
+    private String characterName;
+    private String characterFileUrl;
 
     public void updateRefreshToken(String newRefreshToken){
         this.refreshToken = newRefreshToken;
