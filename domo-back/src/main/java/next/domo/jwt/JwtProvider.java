@@ -1,7 +1,9 @@
+
 package next.domo.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -40,19 +42,19 @@ public class JwtProvider {
 
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
-    private static final String USER_NAME_CLAIM = "userName";
+    private static final String LOGIN_ID_CLAIM = "loginId";
     private static final String BEARER = "Bearer ";
     private static final String USER_ID_CLAIM = "userId";
 
     private final UserRepository userRepository;
 
     // accessToken 생성
-    public String createAccessToken(String email, Long userId) {
+    public String createAccessToken(String loginId, Long userId) {
         Date now = new Date();
         return JWT.create()
                 .withSubject(ACCESS_TOKEN_SUBJECT)
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod))
-                .withClaim(USER_NAME_CLAIM, email)
+                .withClaim(LOGIN_ID_CLAIM, loginId)
                 .withClaim(USER_ID_CLAIM, userId)
                 .sign(Algorithm.HMAC512(secretKey));
     }
@@ -104,7 +106,7 @@ public class JwtProvider {
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
                     .build()
                     .verify(accessToken)
-                    .getClaim(USER_NAME_CLAIM)
+                    .getClaim(LOGIN_ID_CLAIM)
                     .asString());
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.as");
@@ -152,9 +154,9 @@ public class JwtProvider {
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
             log.info("유효한 토큰입니다.");
             return true;
-        } catch (Exception e) {
+        } catch (JWTVerificationException e) {
             log.error("유효하지 않은 토큰입니다. {}", e.getMessage());
-            return false;
+            throw new JWTVerificationException("토큰이 유효하지 않습니다.");
         }
     }
 
@@ -164,9 +166,9 @@ public class JwtProvider {
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
             log.info("유효한 엑세스 토큰입니다.");
             return true;
-        } catch (Exception e) {
+        } catch (JWTVerificationException e) {
             log.error("유효하지 않은 엑세스 토큰입니다. {}", e.getMessage());
-            return false;
+            throw new JWTVerificationException("엑세스 토큰이 유효하지 않습니다.");
         }
     }
 
@@ -176,11 +178,12 @@ public class JwtProvider {
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
             log.info("유효한 리프레시 토큰입니다.");
             return true;
-        } catch (Exception e) {
+        } catch (JWTVerificationException e) {
             log.error("유효하지 않은 리프레시 토큰입니다. {}", e.getMessage());
-            return false;
+            throw new JWTVerificationException("리프레시 토큰이 유효하지 않습니다.");
         }
     }
 }
+
 
 
