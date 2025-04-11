@@ -1,5 +1,6 @@
 package next.domo.user;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import next.domo.jwt.JwtProvider;
@@ -20,6 +21,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+
+    public Long getUserIdFromToken(HttpServletRequest request) {
+        String accessToken = request.getHeader("Authorization").substring(7); // "Bearer "를 제외한 토큰
+        return jwtProvider.extractUserId(accessToken).orElseThrow(() -> new RuntimeException("토큰에서 유저 아이디를 찾을 수 없습니다."));
+    }
 
     public void signUp(UserSignUpRequestDto requestDto, HttpServletResponse response) {
         // 아이디 중복 체크
