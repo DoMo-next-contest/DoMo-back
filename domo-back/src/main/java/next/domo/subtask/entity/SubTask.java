@@ -19,11 +19,15 @@ public class SubTask {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long subTaskId;
 
+    private int subTaskOrder;
+
     private String subTaskName;
 
     private int subTaskExpectedTime;
 
     private int subTaskActualTime;
+
+    private boolean subTaskIsDone;
 
     @Enumerated(EnumType.STRING)
     private SubTaskTag subTaskTag;
@@ -35,11 +39,16 @@ public class SubTask {
 
     public void updateSubTask(SubTaskUpdateDto subTaskUpdateDto) {
         this.subTaskName = subTaskUpdateDto.getSubTaskName();
+        this.subTaskOrder = subTaskUpdateDto.getSubTaskOrder();
         this.subTaskExpectedTime = subTaskUpdateDto.getSubTaskExpectedTime();
         this.subTaskTag = subTaskUpdateDto.getSubTaskTag();
     }
 
     public void saveSubTaskTime(SubTaskTimeDto subTaskTimeDto) {
         this.subTaskActualTime = subTaskTimeDto.getSubTaskActualTime();
+    }
+
+    public void doneSubTask() {
+        this.subTaskIsDone = true;
     }
 }
