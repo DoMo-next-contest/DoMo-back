@@ -6,6 +6,8 @@ import next.domo.project.entity.Project;
 import next.domo.project.entity.ProjectTag;
 import next.domo.project.repository.ProjectRepository;
 import next.domo.project.repository.ProjectTagRepository;
+import next.domo.user.User;
+import next.domo.user.UserRepository;
 import next.domo.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,15 +23,17 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectTagRepository projectTagRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     public void createProject(ProjectCreateRequestDto requestDto) {
         Long userId = userService.getCurrentUserId();
+        User user = userRepository.getReferenceById(userId);
 
         ProjectTag tag = projectTagRepository.findByProjectTagNameAndUserId(requestDto.getProjectTagName(), userId)
                 .orElseThrow(() -> new RuntimeException("해당 태그가 없습니다."));
 
         Project project = Project.builder()
-                .userId(userId)
+                .user(user)
                 .projectTagId(tag.getProjectTagId())
                 .projectName(requestDto.getProjectName())
                 .projectDescription(requestDto.getProjectDescription())
