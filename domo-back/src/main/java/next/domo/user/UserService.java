@@ -8,6 +8,8 @@ import next.domo.user.dto.UserLoginRequestDto;
 import next.domo.user.dto.UserSignUpRequestDto;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
@@ -67,22 +69,35 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void changePassword(String loginId, ChangePasswordRequestDto requestDto) {
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new RuntimeException("해당 아이디를 찾을 수 없습니다."));
-
+    public void changePassword(ChangePasswordRequestDto requestDto) {
+        Long userId = getCurrentUserId();
+    
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    
         if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("기존 비밀번호가 일치하지 않습니다.");
         }
-
+    
         user.updatePassword(passwordEncoder.encode(requestDto.getNewPassword()));
         userRepository.save(user);
-   }
+    }
 
-   public void deleteUser(String loginId) {
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new RuntimeException("해당 아이디를 찾을 수 없습니다."));
-
+    public void deleteUser() {
+        Long userId = getCurrentUserId();
+    
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+    
         userRepository.delete(user);
-}
+    }
+
+    public Long getCurrentUserId() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String loginId = userDetails.getUsername();
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("로그인 정보를 찾을 수 없습니다."));
+        return user.getUserId();
+    }
+    
 }
