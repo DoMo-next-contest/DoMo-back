@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ public class UserController {
     private final UserService userService;
 
     @Operation(summary = "회원가입")
+    @SecurityRequirement(name = "")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "회원가입 성공"),
         @ApiResponse(responseCode = "400", description = "회원가입 실패 (아이디/이메일 중복)")
@@ -33,6 +35,7 @@ public class UserController {
     }
 
     @Operation(summary = "로그인")
+    @SecurityRequirement(name = "")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "로그인 성공"),
         @ApiResponse(responseCode = "400", description = "로그인 실패 (아이디/비밀번호 불일치)")
@@ -44,24 +47,26 @@ public class UserController {
     }
 
     @Operation(summary = "비밀번호 변경")
+    @SecurityRequirement(name = "accessToken")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
         @ApiResponse(responseCode = "400", description = "비밀번호 변경 실패 (기존 비밀번호 불일치)")
     })
     @PutMapping("/password")
-    public ResponseEntity<String> changePassword(@RequestParam String loginId, @RequestBody ChangePasswordRequestDto requestDto) {
-        userService.changePassword(loginId, requestDto);
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequestDto requestDto) {
+        userService.changePassword(requestDto);
         return ResponseEntity.ok("비밀번호 변경 성공");
     }
-
+    
     @Operation(summary = "회원 탈퇴")
+    @SecurityRequirement(name = "accessToken")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "회원 탈퇴 성공"),
         @ApiResponse(responseCode = "400", description = "회원 탈퇴 실패 (해당 아이디 없음)")
     })
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteUser(@RequestParam String loginId) {
-        userService.deleteUser(loginId);
+    public ResponseEntity<String> deleteUser() {
+        userService.deleteUser();
         return ResponseEntity.ok("회원 탈퇴 성공");
     }
 }
