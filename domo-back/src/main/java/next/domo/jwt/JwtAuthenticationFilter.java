@@ -24,7 +24,7 @@ import java.util.List;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final List<String> NO_CHECK_URLS = List.of("/api/user/login", "/swagger-ui", "/api/user/signup", "/v3/api-docs", "/oauth2/google/login", "/oauth2/kakao/login", "/oauth2/apple/login");
+    private static final List<String> NO_CHECK_URLS = List.of("/api/user/login", "/swagger-ui", "/api/user/signup", "/v3/api-docs");
 
     public final JwtProvider jwtProvider;
     public final UserRepository userRepository;
@@ -56,7 +56,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // accesstoken 유효
             if(accessToken != null && jwtProvider.isAccessTokenValid(accessToken)) {
                 checkAccessTokenAndAuthentication(request, response, filterChain);
-                return;
             }
             // refreshtoken 유효 -> accesstoken 재발급
             if(refreshToken != null && jwtProvider.isRefreshTokenValid(refreshToken)) {
@@ -98,6 +97,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 인증 허가
     public void saveAuthentication(User myUser) {
+        log.info("saveAuthentication() 호출");
         String password = myUser.getPassword();
 
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
