@@ -2,6 +2,9 @@ package next.domo.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import next.domo.user.User;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
