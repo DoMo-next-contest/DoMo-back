@@ -15,12 +15,10 @@ import next.domo.subtask.dto.SubTaskTimeDto;
 import next.domo.subtask.dto.SubTaskUpdateDto;
 import next.domo.subtask.service.SubTaskService;
 import next.domo.user.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -49,9 +47,9 @@ public class SubTaskController {
             @ApiResponse(responseCode = "4XX", description = "하위작업 추가 실패")
     })
     @PostMapping("")
-    public ResponseEntity<String> createSubTask(HttpServletRequest request, @RequestBody SubTaskCreateDto subTaskCreateDto) {
+    public ResponseEntity<String> createSubTask(HttpServletRequest request, @Parameter(description = "하위작업을 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody SubTaskCreateDto subTaskCreateDto) {
         Long userId = userService.getUserIdFromToken(request);
-        subTaskService.addSubTask(userId, subTaskCreateDto);
+        subTaskService.addSubTask(userId, projectId, subTaskCreateDto);
         return ResponseEntity.ok("하위작업 추가 성공");
     }
 
@@ -138,6 +136,30 @@ public class SubTaskController {
         return ResponseEntity.ok("하위작업 시간 저장 성공");
     }
 
+    // project 별로 subtask 한번에 생성 후 저장
+    @Operation(summary = "프로젝트 별로 subtask 한번에 생성 후 저장",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "프로젝트 별 생성할 하위작업 리스트",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(
+                                    type = "object",
+                                    example = "[\n {\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskTag\": \"DOCUMENTATION\",\n \"subTaskOrder\": 1\n },\n {\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskTag\": \"COMMUNICATION\",\n \"subTaskOrder\": 2\n }\n ]"
+                            )
+                    )
+            )
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로젝트 별로 subtask 한번에 생성 후 저장 성공"),
+            @ApiResponse(responseCode = "4XX", description = "프로젝트 별로 subtask 한번에 생성 후 저장 실패")
+    })
+    @PostMapping("/{projectId}/subtasks")
+    public ResponseEntity<String> createSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 수정할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskCreateDto> subTaskCreateDtos){
+        Long userId = userService.getUserIdFromToken(request);
+        subTaskService.createSubTaskByProject(userId, projectId, subTaskCreateDtos);
+        return ResponseEntity.ok("프로젝트 별로 하위작업 수정사항 한번에 저장 성공");
+    }
+
     // project 별로 subtask 수정사항 한번에 저장
     @Operation(summary = "프로젝트 별로 하위작업 수정사항 한번에 저장",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -146,7 +168,7 @@ public class SubTaskController {
                     content = @Content(
                             schema = @Schema(
                                     type = "object",
-                                    example = "[\n {\n \"subTaskId\": 1,\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskActualTime\": 45,\n \"subTaskTag\": \"DOCUMENT\",\n \"subTaskOrder\": 1\n },\n {\n \"subTaskId\": 2,\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskActualTime\": 35,\n \"subTaskTag\": \"MEETING\",\n \"subTaskOrder\": 2\n }\n ]"
+                                    example = "[\n {\n \"subTaskId\": 1,\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskTag\": \"DOCUMENTATION\",\n \"subTaskOrder\": 1\n },\n {\n \"subTaskId\": 2,\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskTag\": \"COMMUNICATION\",\n \"subTaskOrder\": 2\n }\n ]"
                             )
                     )
             )
@@ -162,6 +184,7 @@ public class SubTaskController {
         return ResponseEntity.ok("프로젝트 별로 하위작업 수정사항 한번에 저장 성공");
     }
 
+    // subtask 완료
     @Operation(summary = "하위작업 완료",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "완료시 요청 JSON 데이터 없음"
@@ -171,7 +194,6 @@ public class SubTaskController {
             @ApiResponse(responseCode = "200", description = "하위작업 완료 성공"),
             @ApiResponse(responseCode = "4XX", description = "하위작업 완료 실패")
     })
-    // subtask 완료 저장
     @PutMapping("/{subTaskId}/done")
     public ResponseEntity<String> doneSubTask(HttpServletRequest request, @Parameter(description = "완료할 하위작업 ID", required = true, example = "1") @PathVariable Long subTaskId){
         Long userId = userService.getUserIdFromToken(request);
