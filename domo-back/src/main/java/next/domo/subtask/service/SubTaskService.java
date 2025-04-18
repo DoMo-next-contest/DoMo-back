@@ -55,8 +55,8 @@ public class SubTaskService {
 
 
     // subtask 추가
-    public void addSubTask(Long userId, SubTaskCreateDto subTaskCreateDto) {
-        Project project = validateProjectOwner(userId, subTaskCreateDto.getProjectId());
+    public void addSubTask(Long userId, Long projectId, SubTaskCreateDto subTaskCreateDto) {
+        Project project = validateProjectOwner(userId, projectId);
         SubTask newSubTask = subTaskCreateDto.toEntity(project);
         subTaskRepository.save(newSubTask);
     }
@@ -90,6 +90,17 @@ public class SubTaskService {
     public void saveSubTaskTime(Long userId, Long subTaskId, SubTaskTimeDto subTaskTimeDto) {
         SubTask subTask = validateSubTaskOwner(userId, subTaskId);
         subTask.saveSubTaskTime(subTaskTimeDto);
+    }
+
+    // subtask 생성 후 한번에 저장
+    public void createSubTaskByProject(Long userId, Long projectId, List<SubTaskCreateDto> subTaskCreateDtos) {
+        Project project = validateProjectOwner(userId, projectId);
+
+        for (SubTaskCreateDto dto : subTaskCreateDtos) {
+            SubTask subTask = dto.toEntity(project);
+            subTaskRepository.save(subTask);
+        }
+
     }
 
     // subtask 수정사항 한번에 저장

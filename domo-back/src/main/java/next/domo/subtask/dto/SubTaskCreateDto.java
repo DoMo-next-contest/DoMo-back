@@ -7,9 +7,8 @@ import next.domo.subtask.entity.SubTaskTag;
 
 @Getter
 public class SubTaskCreateDto {
-    private Long projectId;
-    private int subTaskOrder;
     private String subTaskName;
+    private int subTaskOrder;
     private int subTaskExpectedTime;
     private SubTaskTag subTaskTag;
 
