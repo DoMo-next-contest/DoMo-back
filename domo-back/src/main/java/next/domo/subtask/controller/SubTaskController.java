@@ -173,10 +173,13 @@ public class SubTaskController {
     })
     // subtask 완료 저장
     @PutMapping("/{subTaskId}/done")
-    public ResponseEntity<String> doneSubTask(HttpServletRequest request, @Parameter(description = "완료할 하위작업 ID", required = true, example = "1") @PathVariable Long subTaskId){
-        Long userId = userService.getUserIdFromToken(request);
-        subTaskService.doneSubTask(userId, subTaskId);
-        return ResponseEntity.ok("하위작업 완료 성공");
-    }
-
+    public ResponseEntity<String> doneSubTask(
+        HttpServletRequest request,
+        @Parameter(description = "완료할 하위작업 ID", required = true, example = "1")
+        @PathVariable Long subTaskId
+        ) {
+                Long userId = userService.getUserIdFromToken(request);
+                subTaskService.doneSubTask(userId, subTaskId);
+                return ResponseEntity.ok("하위작업 완료 성공");
+        }
 }

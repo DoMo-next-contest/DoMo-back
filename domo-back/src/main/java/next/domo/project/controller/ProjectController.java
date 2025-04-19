@@ -2,6 +2,8 @@ package next.domo.project.controller;
 
 import lombok.RequiredArgsConstructor;
 import next.domo.project.dto.*;
+import next.domo.project.entity.Project;
+import next.domo.project.entity.ProjectLevelType;
 import next.domo.project.service.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -85,4 +87,46 @@ public class ProjectController {
         ProjectRecentResponseDto recent = projectService.getRecentProject();
         return ResponseEntity.ok(recent);
     }
+
+    @Operation(summary = "프로젝트 예상 소요 시간 반영")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "예상 소요 시간 반영 성공"),
+        @ApiResponse(responseCode = "400", description = "예상 소요 시간 반영 실패")
+    })
+    @PutMapping("/{projectId}/expected-time")
+    public ResponseEntity<String> updateProjectExpectedTime(@PathVariable Long projectId) {
+        projectService.updateProjectExpectedTime(projectId);
+        return ResponseEntity.ok("예상 소요 시간 반영 성공!");
+    }
+
+    @Operation(summary = "프로젝트 진행률 계산 및 반영")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "진행률 계산 성공"),
+        @ApiResponse(responseCode = "400", description = "진행률 계산 실패"),
+        @ApiResponse(responseCode = "404", description = "해당 ID의 프로젝트가 존재하지 않음")
+    })
+    @PutMapping("/{projectId}/progress-rate")
+    public ResponseEntity<String> updateProgressRate(@PathVariable Long projectId) {
+        projectService.updateProjectProgressRate(projectId);
+        return ResponseEntity.ok("프로젝트 진행률 계산 완료!");
+    }
+
+    @Operation(
+        summary = "프로젝트 완료 처리 및 보상 계산",
+        description = "모든 하위작업이 완료된 프로젝트에 대해 난이도(상, 중, 하)를 입력받아 난이도 계수를 설정하고, 예상 소요 시간 기반으로 코인을 계산하여 프로젝트를 최종 완료 처리합니다."
+        )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "프로젝트 완료 및 코인 계산 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 프로젝트 상태 오류"),
+        @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없습니다")
+    })
+    @PutMapping("/{projectId}/complete")
+    public ResponseEntity<String> completeAndRewardProject(
+        @PathVariable Long projectId,
+        @RequestParam("level") ProjectLevelType levelType
+        ) {
+            Project project = projectService.getProjectEntityById(projectId);
+            projectService.completeAndRewardProject(project, levelType);
+            return ResponseEntity.ok("프로젝트 완료 및 코인 계산 성공!");
+        }
 }
