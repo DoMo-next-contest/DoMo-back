@@ -24,8 +24,6 @@ public class Project {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    private Long userId;
-
     private Long projectTagId;
 
     private String projectName;
@@ -66,5 +64,34 @@ public class Project {
     }
     public void setProjectTagId(Long projectTagId) {
         this.projectTagId = projectTagId;
+    }
+
+    @Enumerated(EnumType.STRING)
+    private ProjectStatus projectStatus;
+    
+    public void markAsDone() {
+        this.projectStatus = ProjectStatus.DONE;
+    }
+
+    public void markAsAlmostDone() {
+        this.projectStatus = ProjectStatus.ALMOST_DONE;
+    }
+
+    public void setProjectExpectedTime(Integer projectExpectedTime) {
+        this.projectExpectedTime = projectExpectedTime;
+    }
+
+    private Integer projectProgressRate;
+    
+    public void setProjectProgressRate(Integer projectProgressRate) {
+         this.projectProgressRate = projectProgressRate;
+    }
+
+    public void setProjectLevel(Integer projectLevel) {
+        this.projectLevel = projectLevel;
+    }
+    
+    public void setProjectCoin(Integer projectCoin) {
+        this.projectCoin = projectCoin;
     }
 }

@@ -2,6 +2,7 @@ package next.domo.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import next.domo.user.User;
 
 @Entity
 @Table(name = "project_tag")
@@ -17,5 +18,7 @@ public class ProjectTag {
 
     private String projectTagName;
 
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

@@ -1,6 +1,8 @@
 package next.domo.project.service;
 
 import lombok.RequiredArgsConstructor;
+import next.domo.user.User;
+import next.domo.user.UserRepository;
 import next.domo.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,21 +22,25 @@ public class ProjectTagService {
     private final ProjectTagRepository projectTagRepository;
     private final ProjectRepository projectRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     public void createProjectTag(String projectTagName) {
         Long userId = userService.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
         if (projectTagName == null || projectTagName.trim().isEmpty()) {
             throw new IllegalArgumentException("프로젝트 태그 이름이 비어있습니다.");
         }
 
-        boolean exists = projectTagRepository.existsByProjectTagNameAndUserId(projectTagName, userId);
+        boolean exists = projectTagRepository.existsByProjectTagNameAndUserUserId(projectTagName, userId);
         if (exists) {
             throw new RuntimeException("이미 존재하는 태그입니다.");
         }
 
+
         ProjectTag tag = ProjectTag.builder()
-                .userId(userId)
+                .user(user)
                 .projectTagName(projectTagName)
                 .build();
         projectTagRepository.save(tag);
@@ -42,7 +48,7 @@ public class ProjectTagService {
 
     public List<ProjectTagResponseDto> getMyProjectTags() {
         Long userId = userService.getCurrentUserId();
-        return projectTagRepository.findByUserId(userId).stream()
+        return projectTagRepository.findByUserUserId(userId).stream()
                 .map(tag -> new ProjectTagResponseDto(tag.getProjectTagId(), tag.getProjectTagName()))
                 .collect(Collectors.toList());
     }
