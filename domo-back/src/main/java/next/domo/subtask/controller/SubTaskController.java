@@ -14,7 +14,8 @@ import next.domo.subtask.dto.SubTaskResponseDto;
 import next.domo.subtask.dto.SubTaskTimeDto;
 import next.domo.subtask.dto.SubTaskUpdateDto;
 import next.domo.subtask.service.SubTaskService;
-import next.domo.user.UserService;
+import next.domo.user.service.UserService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,12 +1,19 @@
-package next.domo.user;
+package next.domo.user.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import next.domo.jwt.JwtProvider;
+import next.domo.project.entity.ProjectTag;
+import next.domo.project.repository.ProjectTagRepository;
 import next.domo.user.dto.ChangePasswordRequestDto;
 import next.domo.user.dto.UserLoginRequestDto;
+import next.domo.user.dto.UserOnboardingRequestDto;
 import next.domo.user.dto.UserSignUpRequestDto;
+import next.domo.user.entity.User;
+import next.domo.user.enums.OnboardingTagType;
+import next.domo.user.repository.UserRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +28,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ProjectTagRepository projectTagRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
 
@@ -105,5 +113,58 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("로그인 정보를 찾을 수 없습니다."));
         return user.getUserId();
     }
-    
+
+    @Transactional
+    public void submitOnboardingSurvey(Long userId, UserOnboardingRequestDto requestDto) {
+        User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+        
+        user.setDetailPreference(requestDto.getDetailPreference());
+        user.setWorkPace(requestDto.getWorkPace());
+        
+        // 관심 태그 기반 project tag 자동 생성
+        for (OnboardingTagType tagEnum : requestDto.getInterestedTags()) {
+            String tagName = tagEnum.name();
+            boolean exists = projectTagRepository.existsByProjectTagNameAndUserUserId(tagName, userId);
+            
+            if (!exists) {
+                ProjectTag tag = ProjectTag.builder()
+                .user(user)
+                .projectTagName(tagName)
+                .build();
+                projectTagRepository.save(tag);
+            }
+        }
+        
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void drawItem(Long userId) {
+        User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        if (user.getUserCoin() < 50) {
+            throw new IllegalArgumentException("코인이 부족하여 뽑기를 진행할 수 없습니다.");
+        }
+
+        user.useCoin(50);
+
+        // TODO: 아이템 생성 로직 (랜덤 or 지정 방식)
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public int getUserCoin(Long userId) {
+        User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        return user.getUserCoin();
+    }
+
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+    }
+
 }

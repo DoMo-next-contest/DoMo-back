@@ -8,9 +8,10 @@ import next.domo.project.entity.ProjectTag;
 import next.domo.project.repository.ProjectRepository;
 import next.domo.project.repository.ProjectTagRepository;
 import next.domo.subtask.repository.SubTaskRepository;
-import next.domo.user.User;
-import next.domo.user.UserRepository;
-import next.domo.user.UserService;
+import next.domo.user.entity.User;
+import next.domo.user.repository.UserRepository;
+import next.domo.user.service.UserService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,6 +185,11 @@ public class ProjectService {
         project.setProjectCoin(coin);
         project.markAsDone();
         projectRepository.save(project);
+
+        // 6. 유저에게 코인 지급
+        User user = project.getUser();
+        user.addCoin(coin);
+        userRepository.save(user);
 }
 
 }

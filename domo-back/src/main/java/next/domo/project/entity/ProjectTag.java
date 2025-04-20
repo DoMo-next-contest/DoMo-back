@@ -2,7 +2,7 @@ package next.domo.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import next.domo.user.User;
+import next.domo.user.entity.User;
 
 @Entity
 @Table(name = "project_tag")

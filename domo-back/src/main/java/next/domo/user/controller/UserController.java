@@ -1,11 +1,13 @@
-package next.domo.user;
+package next.domo.user.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import next.domo.user.UserService;
 import next.domo.user.dto.ChangePasswordRequestDto;
 import next.domo.user.dto.UserLoginRequestDto;
+import next.domo.user.dto.UserOnboardingRequestDto;
 import next.domo.user.dto.UserSignUpRequestDto;
+import next.domo.user.service.UserService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -68,5 +70,51 @@ public class UserController {
     public ResponseEntity<String> deleteUser() {
         userService.deleteUser();
         return ResponseEntity.ok("회원 탈퇴 성공");
+    }
+
+    @Operation(summary = "온보딩 설문조사 제출")
+    @SecurityRequirement(name = "accessToken")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "설문 제출 성공"),
+        @ApiResponse(responseCode = "400", description = "설문 제출 실패")
+    })
+    @PostMapping("/onboarding")
+    public ResponseEntity<String> submitOnboardingSurvey(
+        HttpServletRequest request,
+        @RequestBody UserOnboardingRequestDto requestDto
+        ) {
+            Long userId = userService.getUserIdFromToken(request);
+            userService.submitOnboardingSurvey(userId, requestDto);
+            return ResponseEntity.ok("온보딩 설문조사 완료!");
+        }
+
+    @Operation(summary = "아이템 뽑기", description = "보유 코인 50 차감 후 아이템 1개를 뽑습니다. 코인이 부족할 경우 실패합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "아이템 뽑기 성공"),
+        @ApiResponse(responseCode = "400", description = "코인 부족으로 인한 뽑기 실패")
+    })
+    @PutMapping("/draw")
+    @SecurityRequirement(name = "accessToken")
+    public ResponseEntity<String> drawItem(HttpServletRequest request) {
+        Long userId = userService.getUserIdFromToken(request);
+        try {
+            userService.drawItem(userId);
+            return ResponseEntity.ok("아이템 뽑기 성공!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "보유 코인 조회")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "보유 코인 조회 성공"),
+        @ApiResponse(responseCode = "400", description = "조회 실패")
+    })
+    @GetMapping("/coin")
+    @SecurityRequirement(name = "accessToken")
+    public ResponseEntity<Integer> getUserCoin(HttpServletRequest request) {
+        Long userId = userService.getUserIdFromToken(request);
+        int coin = userService.getUserCoin(userId);
+        return ResponseEntity.ok(coin);
     }
 }

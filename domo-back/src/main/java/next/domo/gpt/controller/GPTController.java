@@ -10,8 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.gpt.service.GPTService;
+import next.domo.user.service.UserService;
 import next.domo.gpt.dto.GPTRequestDto;
-import next.domo.user.UserService;
+
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
