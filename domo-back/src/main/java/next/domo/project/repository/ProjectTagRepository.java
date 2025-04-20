@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProjectTagRepository extends JpaRepository<ProjectTag, Long> {
-    boolean existsByProjectTagNameAndUserId(String projectTagName, Long userId);
-    Optional<ProjectTag> findByProjectTagNameAndUserId(String projectTagName, Long userId);
-    List<ProjectTag> findByUserId(Long userId);
+    boolean existsByProjectTagNameAndUserUserId(String projectTagName, Long userId);
+    Optional<ProjectTag> findByProjectTagNameAndUserUserId(String projectTagName, Long userId);
+    List<ProjectTag> findByUserUserId(Long userId);
 }

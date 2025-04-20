@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.project.entity.Project;
 import next.domo.project.repository.ProjectRepository;
+import next.domo.project.service.ProjectService;
 import next.domo.subtask.dto.*;
 import next.domo.subtask.entity.SubTask;
 import next.domo.subtask.repository.SubTaskRepository;
 import next.domo.user.User;
 import next.domo.user.UserRepository;
+import next.domo.project.entity.ProjectLevelType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class SubTaskService {
     private final SubTaskRepository subTaskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ProjectService projectService;
 
     protected Project validateProjectOwner(Long userId, Long projectId) {
         User user = userRepository.findById(userId)
@@ -124,6 +127,15 @@ public class SubTaskService {
     public void doneSubTask(Long userId, Long subTaskId) {
         SubTask subTask = validateSubTaskOwner(userId, subTaskId);
         subTask.doneSubTask();
+    
+        Project project = subTask.getProject();
+        List<SubTask> subTasks = subTaskRepository.findAllByProject(project);
+        boolean allDone = subTasks.stream().allMatch(SubTask::isSubTaskIsDone);
+    
+        if (allDone) {
+            project.markAsAlmostDone();
+            projectRepository.save(project);
+        }
     }
 
     // subtask tag 별 시간 계산
