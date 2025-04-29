@@ -21,4 +21,7 @@ public interface SubTaskRepository extends JpaRepository<SubTask, Long> {
 
     @Query("SELECT COUNT(st) FROM SubTask st WHERE st.project.projectId = :projectId")
     Integer countAllByProjectId(@Param("projectId") Long projectId);
-}
+    
+    @Query("SELECT s FROM SubTask s WHERE s.project.user.userId = :userId")
+    List<SubTask> findAllByUserId(@Param("userId") Long userId);
+}    

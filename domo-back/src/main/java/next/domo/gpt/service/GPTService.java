@@ -5,10 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import next.domo.gpt.dto.GPTRequestDto;
 import next.domo.subtask.entity.SubTaskTag;
-import next.domo.user.User;
-import next.domo.user.UserRepository;
-import next.domo.user.UserTag;
-import next.domo.user.UserTagRepository;
+import next.domo.user.entity.User;
+import next.domo.user.entity.UserTag;
+import next.domo.user.repository.UserRepository;
+import next.domo.user.repository.UserTagRepository;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -43,22 +44,22 @@ public class GPTService{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 아이디를 가진 사용자를 찾을 수 없습니다."));
         List<UserTag> userTags = userTagRepository.findByUserUserId(userId);
-        Map<SubTaskTag, Integer> tagRateMap = userTags.stream()
+        Map<SubTaskTag, Float> tagRateMap = userTags.stream()
                 .collect(Collectors.toMap(
-                        UserTag::getUserTagName,
+                        UserTag::getSubTaskTag,
                         UserTag::getActualToExpectedRate
                 ));
 
         // 2. 각 태그별 수치 꺼내기 (없으면 100%)
-        int documentation = tagRateMap.getOrDefault("DOCUMENTATION", 100);
-        int planning = tagRateMap.getOrDefault("PLANNING_STRATEGY", 100);
-        int development = tagRateMap.getOrDefault("DEVELOPMENT", 100);
-        int design = tagRateMap.getOrDefault("DESIGN", 100);
-        int research = tagRateMap.getOrDefault("RESEARCH_ANALYSIS", 100);
-        int communication = tagRateMap.getOrDefault("COMMUNICATION", 100);
-        int operations = tagRateMap.getOrDefault("OPERATIONS", 100);
-        int exercise = tagRateMap.getOrDefault("EXERCISE", 100);
-        int personal = tagRateMap.getOrDefault("PERSONAL_LIFE", 100);
+        float documentation = tagRateMap.getOrDefault("DOCUMENTATION", 100f);
+        float planning = tagRateMap.getOrDefault("PLANNING_STRATEGY", 100f);
+        float development = tagRateMap.getOrDefault("DEVELOPMENT", 100f);
+        float design = tagRateMap.getOrDefault("DESIGN", 100f);
+        float research = tagRateMap.getOrDefault("RESEARCH_ANALYSIS", 100f);
+        float communication = tagRateMap.getOrDefault("COMMUNICATION", 100f);
+        float operations = tagRateMap.getOrDefault("OPERATIONS", 100f);
+        float exercise = tagRateMap.getOrDefault("EXERCISE", 100f);
+        float personal = tagRateMap.getOrDefault("PERSONAL_LIFE", 100f);
 
         String userMessage = String.format("""
                         이 사용자는 세분화 선호도는 [%d]이고, 작업 여유 성향은 [%d]이야.

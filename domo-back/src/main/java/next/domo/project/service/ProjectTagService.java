@@ -1,9 +1,10 @@
 package next.domo.project.service;
 
 import lombok.RequiredArgsConstructor;
-import next.domo.user.User;
-import next.domo.user.UserRepository;
-import next.domo.user.UserService;
+import next.domo.user.entity.User;
+import next.domo.user.repository.UserRepository;
+import next.domo.user.service.UserService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import next.domo.project.dto.ProjectTagResponseDto;

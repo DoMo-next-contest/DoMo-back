@@ -23,9 +23,9 @@ public class SubTask {
 
     private String subTaskName;
 
-    private int subTaskExpectedTime;
+    private Integer subTaskExpectedTime;
 
-    private int subTaskActualTime;
+    private Integer subTaskActualTime;
 
     private boolean subTaskIsDone;
 

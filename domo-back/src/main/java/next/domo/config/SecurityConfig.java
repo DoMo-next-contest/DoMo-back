@@ -3,7 +3,8 @@ package next.domo.config;
 import lombok.RequiredArgsConstructor;
 import next.domo.jwt.JwtAuthenticationFilter;
 import next.domo.jwt.JwtProvider;
-import next.domo.user.UserRepository;
+import next.domo.user.repository.UserRepository;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

@@ -1,4 +1,4 @@
-package next.domo.user;
+package next.domo.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,8 +21,9 @@ public class UserTag {
     private User user;
 
     @Column(nullable = false)
-    private SubTaskTag userTagName;
+    @Enumerated(EnumType.STRING)
+    private SubTaskTag subTaskTag;  // 기존 userTagName → 의미 명확하게 변경
 
     @Column(nullable = false)
-    private int actualToExpectedRate;
+    private float actualToExpectedRate;
 }
