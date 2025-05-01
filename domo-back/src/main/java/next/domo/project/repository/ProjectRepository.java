@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-    boolean existsByProjectTagId(Long projectTagId);
+    boolean existsByProjectTag_ProjectTagId(Long projectTagId);
     List<Project> findByUserUserId(Long userId);
     Optional<Project> findTopByUserUserIdOrderByProjectIdDesc(Long userId);
 }

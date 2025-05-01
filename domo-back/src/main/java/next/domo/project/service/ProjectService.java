@@ -11,6 +11,7 @@ import next.domo.subtask.repository.SubTaskRepository;
 import next.domo.user.entity.User;
 import next.domo.user.repository.UserRepository;
 import next.domo.user.service.UserService;
+import next.domo.user.service.UserTagService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class ProjectService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final SubTaskRepository subTaskRepository;
+    private final UserTagService userTagService;
 
     public void createProject(ProjectCreateRequestDto requestDto) {
         Long userId = userService.getCurrentUserId();
@@ -39,7 +41,7 @@ public class ProjectService {
 
         Project project = Project.builder()
                 .user(user)
-                .projectTagId(tag.getProjectTagId())
+                .projectTag(tag)
                 .projectName(requestDto.getProjectName())
                 .projectDescription(requestDto.getProjectDescription())
                 .projectRequirement(requestDto.getProjectRequirement())
@@ -53,27 +55,22 @@ public class ProjectService {
     public List<ProjectListResponseDto> getAllProjects() {
         Long userId = userService.getCurrentUserId();
         return projectRepository.findByUserUserId(userId).stream()
-                .map(project -> {
-                    ProjectTag tag = projectTagRepository.findById(project.getProjectTagId())
-                            .orElseThrow(() -> new RuntimeException("태그를 찾을 수 없습니다."));
-                    return new ProjectListResponseDto(
-                            project.getProjectId(),
-                            project.getProjectName(),
-                            tag.getProjectTagName(),
-                            project.getProjectDeadline()
-                    );
-                }).collect(Collectors.toList());
+                .map(project -> new ProjectListResponseDto(
+                        project.getProjectId(),
+                        project.getProjectName(),
+                        project.getProjectTag().getProjectTagName(),
+                        project.getProjectDeadline()
+                )).collect(Collectors.toList());
     }
+
 
     public ProjectDetailResponseDto getProjectDetail(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
-        ProjectTag tag = projectTagRepository.findById(project.getProjectTagId())
-                .orElseThrow(() -> new RuntimeException("태그를 찾을 수 없습니다."));
         return new ProjectDetailResponseDto(
                 project.getProjectName(),
                 project.getProjectDescription(),
-                tag.getProjectTagName(),
+                project.getProjectTag().getProjectTagName(),
                 project.getProjectDeadline()
         );
     }
@@ -100,30 +97,27 @@ public class ProjectService {
                 requestDto.getProjectTagName(), 
                 project.getUser().getUserId()
             ).orElseThrow(() -> new RuntimeException("해당 태그를 찾을 수 없습니다."));
-            project.setProjectTagId(tag.getProjectTagId());
+            project.setProjectTag(tag);
         }
 
         projectRepository.save(project);
     }
 
     public void deleteProject(Long projectId) {
-    if (!projectRepository.existsById(projectId)) {
-        throw new RuntimeException("존재하지 않는 프로젝트입니다.");
+        if (!projectRepository.existsById(projectId)) {
+            throw new RuntimeException("존재하지 않는 프로젝트입니다.");
+        }
+        projectRepository.deleteById(projectId);
     }
-    projectRepository.deleteById(projectId);
-}
 
     public ProjectRecentResponseDto getRecentProject() {
         Long userId = userService.getCurrentUserId();
         Project recent = projectRepository.findTopByUserUserIdOrderByProjectIdDesc(userId)
                 .orElseThrow(() -> new RuntimeException("최근 프로젝트가 없습니다."));
 
-        ProjectTag tag = projectTagRepository.findById(recent.getProjectTagId())
-                .orElseThrow(() -> new RuntimeException("태그를 찾을 수 없습니다."));
-
         return new ProjectRecentResponseDto(
                 recent.getProjectName(),
-                tag.getProjectTagName()
+                recent.getProjectTag().getProjectTagName()
         );
     }
 
@@ -190,6 +184,9 @@ public class ProjectService {
         User user = project.getUser();
         user.addCoin(coin);
         userRepository.save(user);
+
+        //  사용자 하위작업 태그 예측 대비 소요율 갱신
+        userTagService.updateUserTagRates(user);
 }
 
 }
