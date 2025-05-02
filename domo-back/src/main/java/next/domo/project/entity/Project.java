@@ -25,7 +25,9 @@ public class Project {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    private Long projectTagId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_tag_id", nullable = false)
+    private ProjectTag projectTag;
 
     private String projectName;
 
@@ -43,28 +45,32 @@ public class Project {
 
     private Integer projectCoin;
 
-    public void updateProject(String projectName, String projectDescription, String projectRequirement, LocalDateTime projectDeadline, Long projectTagId) {
+    public void updateProject(String projectName, String projectDescription, String projectRequirement, LocalDateTime projectDeadline, ProjectTag projectTag) {
         this.projectName = projectName;
         this.projectDescription = projectDescription;
         this.projectRequirement = projectRequirement;
         this.projectDeadline = projectDeadline;
-        this.projectTagId = projectTagId;
+        this.projectTag = projectTag;
     }
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }
+
     public void setProjectDescription(String projectDescription) {
         this.projectDescription = projectDescription;
     }
+
     public void setProjectRequirement(String projectRequirement) {
         this.projectRequirement = projectRequirement;
     }
+
     public void setProjectDeadline(LocalDateTime projectDeadline) {
         this.projectDeadline = projectDeadline;
     }
-    public void setProjectTagId(Long projectTagId) {
-        this.projectTagId = projectTagId;
+    
+    public void setProjectTag(ProjectTag projectTag) {
+        this.projectTag = projectTag;
     }
 
     @Enumerated(EnumType.STRING)

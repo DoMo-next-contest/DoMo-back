@@ -55,7 +55,7 @@ public class ProjectTagService {
     }
 
     public void deleteProjectTag(Long projectTagId) {
-        boolean hasProject = projectRepository.existsByProjectTagId(projectTagId);
+        boolean hasProject = projectRepository.existsByProjectTag_ProjectTagId(projectTagId);
     
         if (hasProject) {
             throw new RuntimeException("해당 태그를 사용하는 프로젝트가 있어 삭제할 수 없습니다. 먼저 프로젝트의 태그를 변경하세요.");
