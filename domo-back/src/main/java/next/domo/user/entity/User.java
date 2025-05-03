@@ -67,4 +67,8 @@ public class User {
         }
         this.userCoin -= amount;
     }
+
+    public void setCharacterFileUrl(String url) {
+        this.characterFileUrl = url;
+    }
 }

@@ -25,7 +25,7 @@ import java.util.List;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final List<String> NO_CHECK_URLS = List.of("/api/user/login", "/swagger-ui", "/api/user/signup", "/v3/api-docs");
+    private static final List<String> NO_CHECK_URLS = List.of("/api/user/login", "/swagger-ui", "/api/user/signup", "/v3/api-docs", "/upload/glb");
 
     public final JwtProvider jwtProvider;
     public final UserRepository userRepository;
@@ -83,16 +83,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     public void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                                  FilterChain filterChain) throws ServletException, IOException {
+    FilterChain filterChain) throws ServletException, IOException {
         log.info("checkAccessTokenAndAuthentication() 호출");
+        
         jwtProvider.extractAccessToken(request)
-                .ifPresent(accessToken -> {
-                    jwtProvider.extractUserId(accessToken)
-                            .ifPresent(userId -> userRepository.findByUserId(userId)
-                                    .ifPresent(this::saveAuthentication)
-                            );
+        .ifPresent(accessToken -> {
+            jwtProvider.extractUserId(accessToken)
+            .ifPresent(userId -> {
+                log.info("인증 대상 userId = {}", userId);
+                userRepository.findByUserId(userId)
+                .ifPresentOrElse(this::saveAuthentication, () -> {
+                    log.warn("토큰은 유효하지만 userId={}에 해당하는 유저 없음", userId);
                 });
+            });
+        });
 
+        // ✅ 인증 정보가 SecurityContext에 저장되지 않은 경우 → 403 반환
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            log.error("SecurityContext에 인증 정보가 없습니다. 403 Forbidden 반환");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write("{\"error\": \"인증 실패: 인증 정보 없음\"}");
+            return;
+        }
+
+        // 인증 성공한 경우에만 다음 필터로 넘김
         filterChain.doFilter(request, response);
     }
 

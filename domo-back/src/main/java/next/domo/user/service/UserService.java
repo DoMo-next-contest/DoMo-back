@@ -13,11 +13,13 @@ import next.domo.user.dto.UserSignUpRequestDto;
 import next.domo.user.entity.User;
 import next.domo.user.enums.OnboardingTagType;
 import next.domo.user.repository.UserRepository;
+import next.domo.upload.service.S3Service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
@@ -31,6 +33,7 @@ public class UserService {
     private final ProjectTagRepository projectTagRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final S3Service s3Service;
 
     public Long getUserIdFromToken(HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization").substring(7); // "Bearer "를 제외한 토큰
@@ -167,4 +170,22 @@ public class UserService {
             .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
 
+    @Transactional
+    public String uploadCharacterFile(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        String fileUrl = s3Service.uploadFile(file, "character"); // 폴더 지정
+        user.setCharacterFileUrl(fileUrl);
+        userRepository.save(user);
+        
+        return fileUrl;
+    }
+
+    public String getCharacterFileUrl(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        return user.getCharacterFileUrl();
+    }
+    
 }
