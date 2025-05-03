@@ -11,6 +11,7 @@ import next.domo.user.service.UserService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -116,5 +117,39 @@ public class UserController {
         Long userId = userService.getUserIdFromToken(request);
         int coin = userService.getUserCoin(userId);
         return ResponseEntity.ok(coin);
+    }
+
+    @Operation(summary = "캐릭터 파일 업로드", description = "GLB 파일을 S3에 업로드하고 URL을 User 테이블에 저장합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "캐릭터 파일 업로드 성공"),
+        @ApiResponse(responseCode = "400", description = "캐릭터 파일 업로드 실패")
+    })
+    @PostMapping(value = "/character/upload", consumes = "multipart/form-data")
+    @SecurityRequirement(name = "accessToken")
+    public ResponseEntity<String> uploadCharacterFile(
+        HttpServletRequest request,
+        @RequestPart MultipartFile file
+    ) {
+        Long userId = userService.getUserIdFromToken(request);
+        String fileUrl = userService.uploadCharacterFile(userId, file);
+        return ResponseEntity.ok(fileUrl);
+    }
+
+    @Operation(summary = "캐릭터 파일 URL 조회", description = "로그인된 사용자의 캐릭터 GLB 파일 URL을 반환합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "캐릭터 파일 URL 반환 성공"),
+        @ApiResponse(responseCode = "400", description = "사용자 정보 없음 또는 URL 없음")
+    })
+    @GetMapping("/character/url")
+    @SecurityRequirement(name = "accessToken")
+    public ResponseEntity<String> getCharacterFileUrl(HttpServletRequest request) {
+        Long userId = userService.getUserIdFromToken(request);
+        String url = userService.getCharacterFileUrl(userId);
+        
+        if (url == null || url.isBlank()) {
+            return ResponseEntity.badRequest().body("캐릭터 파일이 아직 업로드되지 않았습니다.");
+        }
+        
+        return ResponseEntity.ok(url);
     }
 }

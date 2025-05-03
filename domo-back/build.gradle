@@ -48,6 +48,11 @@ dependencies {
 
     // WebClient
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // aws-S3
+    implementation platform("software.amazon.awssdk:bom:2.20.150")
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:auth'
 }
 
 test {
