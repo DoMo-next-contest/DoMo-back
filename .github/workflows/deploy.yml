@@ -1,0 +1,99 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build-and-docker:
+    runs-on: ubuntu-latest
+    steps:
+      # 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # JDK 설치
+      - name: Set up JDK 17 # build.gradle 버전 확인
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      # 설정 파일 생성
+      - name: Create application.yml Files
+        run: |
+          mkdir -p ontime-back/src/main/resources
+          echo "spring.application.name=${{ secrets.SPRING_APPLICATION_NAME }}" > ontime-back/src/main/resources/application.properties
+          echo "spring.datasource.url=${{ secrets.SPRING_DATASOURCE_URL }}" >> ontime-back/src/main/resources/application.properties
+          echo "spring.datasource.username=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> ontime-back/src/main/resources/application.properties
+          echo "spring.datasource.password=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> ontime-back/src/main/resources/application.properties
+          echo "spring.datasource.driver-class-name=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }}" >> ontime-back/src/main/resources/application.properties
+          echo "spring.jpa.hibernate.ddl-auto=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}" >> ontime-back/src/main/resources/application.properties
+          echo "spring.servlet.multipart.max-file-size=${{ secrets.SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE }}" >> ontime-back/src/main/resources/application.properties
+          echo "spring.servlet.multipart.max-request-size=${{ secrets.SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE }}" >> ontime-back/src/main/resources/application.properties
+          echo "jwt.secret.key=${{ secrets.JWT_SECRETKEY }}" >> ontime-back/src/main/resources/application.properties
+          echo "jwt.access.expiration=${{ secrets.JWT_ACCESS_EXPIRATION }}" >> ontime-back/src/main/resources/application.properties
+          echo "jwt.refresh.expiration=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> ontime-back/src/main/resources/application.properties
+          echo "jwt.access.header=${{ secrets.JWT_ACCESS_HEADER }}" >> ontime-back/src/main/resources/application.properties
+          echo "jwt.refresh.header=${{ secrets.JWT_REFRESH_HEADER }}" >> ontime-back/src/main/resources/application.properties
+          echo "openai.api-key=${{ secrets.OPENAPI_API_KEY }}" >> ontime-back/src/main/resources/application.properties
+          echo "cloud.aws.credentials.access-key=${{ secrets.CLOUD_AWS_CREDENTIALS_ACCESS_KEY }}" >> ontime-back/src/main/resources/application.properties
+          echo "cloud.aws.credentials.secret-key=${{ secrets.CLOUD_AWS_CREDENTIALS_SECRET_KEY }}" >> ontime-back/src/main/resources/application.properties
+          echo "cloud.aws.region.static=${{ secrets.CLOUD_AWS_REGION_STATIC }}" >> ontime-back/src/main/resources/application.properties
+          echo "cloud.aws.s3.bucket=${{ secrets.CLOUD_AWS_S3_BUCKET }}" >> ontime-back/src/main/resources/application.properties
+      # Gradle 빌드
+      - name: Build with Gradle
+        run: |
+          cd ontime-back  
+          ./gradlew build -x test
+      # 파일 위치 변경
+      - name: Move file
+        run: |
+          mv ontime-back/src/main/resources/application.properties ./application.properties
+          mv ontime-back/build/libs/domo-back-1.0-SNAPSHOT.jar ./project.jar
+      # EC2 서버에 업로드
+      - name: Upload files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+           host: ${{ secrets.EC2_HOST }}
+           username: ${{ secrets.EC2_USER }}
+           key: ${{ secrets.EC2_SSH_KEY }}
+           source: "./project.jar, ./application.properties"
+           target: "/home/ubuntu/OnTime-back"
+           debug: true
+  create-config-files:
+    needs: build-and-docker
+    runs-on: ubuntu-latest
+    steps:
+    # EC2 서버에 접근 + 설정 파일 생성
+    - name: SSH to EC2 & Create Config Files
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        debug: true
+        script: |
+          sudo mv /home/ubuntu/OnTime-back/application.properties /home/ubuntu/OnTime-back/ontime-back/src/main/resources/application.properties
+
+  deploy-to-ec2:
+    needs: create-config-files
+    runs-on: ubuntu-latest
+    steps:
+    # EC2 서버에 접근 + jar 배포
+    - name: SSH to EC2 & Deploy JAR
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # 백그라운드에서 기존 애플리케이션 종료
+          PID=$(pgrep -f 'project.jar')
+          if [ ! -z "$PID" ]; then
+            kill -9 $PID
+          fi
+    
+          # 새로운 .jar 실행
+          cd /home/ubuntu/OnTime-back
+          nohup java -jar project.jar > log.out 2>&1 &
+      
