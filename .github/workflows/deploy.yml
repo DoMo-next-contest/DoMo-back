@@ -43,7 +43,7 @@ jobs:
       # Gradle 빌드
       - name: Build with Gradle
         run: |
-          cd ontime-back  
+          cd domo-back  
           ./gradlew build -x test
       # 파일 위치 변경
       - name: Move file
