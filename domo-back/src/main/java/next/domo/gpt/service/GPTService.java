@@ -3,6 +3,7 @@ package next.domo.gpt.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import next.domo.gpt.dto.GPTRequestDto;
 import next.domo.subtask.entity.SubTaskTag;
 import next.domo.user.entity.User;
@@ -14,12 +15,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static next.domo.subtask.entity.SubTaskTag.*;
+
+@Slf4j
 @Service
 public class GPTService{
 
@@ -43,35 +48,36 @@ public class GPTService{
     public String createSubTaskByGPT(Long userId, GPTRequestDto gptRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 아이디를 가진 사용자를 찾을 수 없습니다."));
+        // userTag(user의 정보) 찾기
         List<UserTag> userTags = userTagRepository.findByUserUserId(userId);
+        // userTag 퍼센트 저장 map
         Map<SubTaskTag, Float> tagRateMap = userTags.stream()
                 .collect(Collectors.toMap(
                         UserTag::getSubTaskTag,
                         UserTag::getActualToExpectedRate
                 ));
 
-        // 2. 각 태그별 수치 꺼내기 (없으면 100%)
-        float documentation = tagRateMap.getOrDefault("DOCUMENTATION", 100f);
-        float planning = tagRateMap.getOrDefault("PLANNING_STRATEGY", 100f);
-        float development = tagRateMap.getOrDefault("DEVELOPMENT", 100f);
-        float design = tagRateMap.getOrDefault("DESIGN", 100f);
-        float research = tagRateMap.getOrDefault("RESEARCH_ANALYSIS", 100f);
-        float communication = tagRateMap.getOrDefault("COMMUNICATION", 100f);
-        float operations = tagRateMap.getOrDefault("OPERATIONS", 100f);
-        float exercise = tagRateMap.getOrDefault("EXERCISE", 100f);
-        float personal = tagRateMap.getOrDefault("PERSONAL_LIFE", 100f);
+        // 각 태그별 수치 꺼내기 (없으면 100%)
+        int documentation = (int) Math.floor(tagRateMap.getOrDefault(DOCUMENTATION, 1f)*100);
+        int planning = (int) Math.floor(tagRateMap.getOrDefault(PLANNING_STRATEGY, 1f)*100);
+        int development = (int) Math.floor(tagRateMap.getOrDefault(DEVELOPMENT, 1f)*100);
+        int design = (int) Math.floor(tagRateMap.getOrDefault(DESIGN, 1f)*100);
+        int research = (int) Math.floor(tagRateMap.getOrDefault(RESEARCH_ANALYSIS, 1f)*100);
+        int communication = (int) Math.floor(tagRateMap.getOrDefault(COMMUNICATION, 1f)*100);
+        int operations = (int) Math.floor(tagRateMap.getOrDefault(OPERATIONS, 1f)*100);
+        int exercise = (int) Math.floor(tagRateMap.getOrDefault(EXERCISE, 1f)*100);
+        int personal = (int) Math.floor(tagRateMap.getOrDefault(PERSONAL_LIFE, 1f)*100);
 
+        // 프롬프트
         String userMessage = String.format("""
-                        이 사용자는 세분화 선호도는 [%d]이고, 작업 여유 성향은 [%d]이야.
-                        [%s]라는 프로젝트 이름과 [%s]이라는 프로젝트 설명, [%s]라는 프로젝트 요구사항, 그리고 프로젝트 데드라인 [%s]을 갖는 프로젝트야.
+                        이 사용자는 세분화 선호도는 [%s]이고, 작업 여유 성향은 [%s]이야.
+                        [%s]라는 프로젝트 이름과 [%s]이라는 프로젝트 설명, [%s]라는 프로젝트 요구사항, 그리고 현재 날짜는 [%s]이고 프로젝트 데드라인 [%s]을 갖는 프로젝트야.
                         
-                        이 프로젝트의 실제 하위작업(subTask) 리스트를 만들어줘. 하위작업에는 다음 정보를 포함해줘:
-                        - 하위작업 순서(subTaskOrder)
-                        - 하위작업 제목(subTaskName)
-                        - 하위작업 예상 소요시간(subTaskExpectedTime)
-                        - 하위작업 태그(subTaskTag)
+                        이 프로젝트의 실제 하위작업 리스트(subTaskList)를 만들어줘. 하위작업에는 다음 정보를 포함해줘:
+                        하위작업 순서(subTaskOrder), 하위작업 제목(subTaskName), 하위작업 예상 소요시간(subTaskExpectedTime), 하위작업 태그(subTaskTag)
                         
                         각 하위작업에는 실제 사용자의 작업 성향을 고려해서 예상 소요시간을 조정해줘.
+                        단, 예상 소요시간(subTaskExpectedTime)은 **분 단위(minute)**로 정수로 표현해줘.
                         사용자의 태그별 예측 대비 실제 소요 시간 비율은 다음과 같아:
                         - DOCUMENTATION: %d%%
                         - PLANNING_STRATEGY: %d%%
@@ -97,6 +103,7 @@ public class GPTService{
                 gptRequestDto.getProjectName(),
                 gptRequestDto.getProjectDescription(),
                 gptRequestDto.getProjectRequirement(),
+                LocalDate.now(),
                 gptRequestDto.getProjectDeadline(),
                 documentation,
                 planning,
@@ -108,6 +115,7 @@ public class GPTService{
                 exercise,
                 personal
         );
+        log.info(userMessage);
         Map<String, Object> message1 = Map.of(
                 "role", "system",
                 "content", "You are a helpful assistant."
