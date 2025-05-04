@@ -21,25 +21,25 @@ jobs:
       # 설정 파일 생성
       - name: Create application.yml Files
         run: |
-          mkdir -p ontime-back/src/main/resources
-          echo "spring.application.name=${{ secrets.SPRING_APPLICATION_NAME }}" > ontime-back/src/main/resources/application.properties
-          echo "spring.datasource.url=${{ secrets.SPRING_DATASOURCE_URL }}" >> ontime-back/src/main/resources/application.properties
-          echo "spring.datasource.username=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> ontime-back/src/main/resources/application.properties
-          echo "spring.datasource.password=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> ontime-back/src/main/resources/application.properties
-          echo "spring.datasource.driver-class-name=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }}" >> ontime-back/src/main/resources/application.properties
-          echo "spring.jpa.hibernate.ddl-auto=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}" >> ontime-back/src/main/resources/application.properties
-          echo "spring.servlet.multipart.max-file-size=${{ secrets.SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE }}" >> ontime-back/src/main/resources/application.properties
-          echo "spring.servlet.multipart.max-request-size=${{ secrets.SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE }}" >> ontime-back/src/main/resources/application.properties
-          echo "jwt.secret.key=${{ secrets.JWT_SECRETKEY }}" >> ontime-back/src/main/resources/application.properties
-          echo "jwt.access.expiration=${{ secrets.JWT_ACCESS_EXPIRATION }}" >> ontime-back/src/main/resources/application.properties
-          echo "jwt.refresh.expiration=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> ontime-back/src/main/resources/application.properties
-          echo "jwt.access.header=${{ secrets.JWT_ACCESS_HEADER }}" >> ontime-back/src/main/resources/application.properties
-          echo "jwt.refresh.header=${{ secrets.JWT_REFRESH_HEADER }}" >> ontime-back/src/main/resources/application.properties
-          echo "openai.api-key=${{ secrets.OPENAPI_API_KEY }}" >> ontime-back/src/main/resources/application.properties
-          echo "cloud.aws.credentials.access-key=${{ secrets.CLOUD_AWS_CREDENTIALS_ACCESS_KEY }}" >> ontime-back/src/main/resources/application.properties
-          echo "cloud.aws.credentials.secret-key=${{ secrets.CLOUD_AWS_CREDENTIALS_SECRET_KEY }}" >> ontime-back/src/main/resources/application.properties
-          echo "cloud.aws.region.static=${{ secrets.CLOUD_AWS_REGION_STATIC }}" >> ontime-back/src/main/resources/application.properties
-          echo "cloud.aws.s3.bucket=${{ secrets.CLOUD_AWS_S3_BUCKET }}" >> ontime-back/src/main/resources/application.properties
+          mkdir -p domo-back/src/main/resources
+          echo "spring.application.name=${{ secrets.SPRING_APPLICATION_NAME }}" > domo-back/src/main/resources/application.properties
+          echo "spring.datasource.url=${{ secrets.SPRING_DATASOURCE_URL }}" >> domo-back/src/main/resources/application.properties
+          echo "spring.datasource.username=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> domo-back/src/main/resources/application.properties
+          echo "spring.datasource.password=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> domo-back/src/main/resources/application.properties
+          echo "spring.datasource.driver-class-name=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }}" >> domo-back/src/main/resources/application.properties
+          echo "spring.jpa.hibernate.ddl-auto=${{ secrets.SPRING_JPA_HIBERNATE_DDL_AUTO }}" >> domo-back/src/main/resources/application.properties
+          echo "spring.servlet.multipart.max-file-size=${{ secrets.SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE }}" >> domo-back/src/main/resources/application.properties
+          echo "spring.servlet.multipart.max-request-size=${{ secrets.SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE }}" >> domo-back/src/main/resources/application.properties
+          echo "jwt.secret.key=${{ secrets.JWT_SECRETKEY }}" >> domo-back/src/main/resources/application.properties
+          echo "jwt.access.expiration=${{ secrets.JWT_ACCESS_EXPIRATION }}" >> domo-back/src/main/resources/application.properties
+          echo "jwt.refresh.expiration=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> domo-back/src/main/resources/application.properties
+          echo "jwt.access.header=${{ secrets.JWT_ACCESS_HEADER }}" >> domo-back/src/main/resources/application.properties
+          echo "jwt.refresh.header=${{ secrets.JWT_REFRESH_HEADER }}" >> domo-back/src/main/resources/application.properties
+          echo "openai.api-key=${{ secrets.OPENAPI_API_KEY }}" >> domo-back/src/main/resources/application.properties
+          echo "cloud.aws.credentials.access-key=${{ secrets.CLOUD_AWS_CREDENTIALS_ACCESS_KEY }}" >> domo-back/src/main/resources/application.properties
+          echo "cloud.aws.credentials.secret-key=${{ secrets.CLOUD_AWS_CREDENTIALS_SECRET_KEY }}" >> domo-back/src/main/resources/application.properties
+          echo "cloud.aws.region.static=${{ secrets.CLOUD_AWS_REGION_STATIC }}" >> domo-back/src/main/resources/application.properties
+          echo "cloud.aws.s3.bucket=${{ secrets.CLOUD_AWS_S3_BUCKET }}" >> domo-back/src/main/resources/application.properties
       # Gradle 빌드
       - name: Build with Gradle
         run: |
@@ -48,8 +48,8 @@ jobs:
       # 파일 위치 변경
       - name: Move file
         run: |
-          mv ontime-back/src/main/resources/application.properties ./application.properties
-          mv ontime-back/build/libs/domo-back-1.0-SNAPSHOT.jar ./project.jar
+          mv domo-back/src/main/resources/application.properties ./application.properties
+          mv domo-back/build/libs/domo-back-1.0-SNAPSHOT.jar ./project.jar
       # EC2 서버에 업로드
       - name: Upload files to EC2
         uses: appleboy/scp-action@v0.1.7
@@ -58,7 +58,7 @@ jobs:
            username: ${{ secrets.EC2_USER }}
            key: ${{ secrets.EC2_SSH_KEY }}
            source: "./project.jar, ./application.properties"
-           target: "/home/ubuntu/OnTime-back"
+           target: "/home/ubuntu/DoMo-back"
            debug: true
   create-config-files:
     needs: build-and-docker
@@ -73,7 +73,7 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         debug: true
         script: |
-          sudo mv /home/ubuntu/OnTime-back/application.properties /home/ubuntu/OnTime-back/ontime-back/src/main/resources/application.properties
+          sudo mv /home/ubuntu/DoMo-back/application.properties /home/ubuntu/DoMo-back/domo-back/src/main/resources/application.properties
 
   deploy-to-ec2:
     needs: create-config-files
@@ -94,6 +94,6 @@ jobs:
           fi
     
           # 새로운 .jar 실행
-          cd /home/ubuntu/OnTime-back
+          cd /home/ubuntu/DoMo-back
           nohup java -jar project.jar > log.out 2>&1 &
       
