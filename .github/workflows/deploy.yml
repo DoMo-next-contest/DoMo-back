@@ -87,13 +87,14 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # 백그라운드에서 기존 애플리케이션 종료
-          PID=$(pgrep -f 'project.jar')
-          if [ ! -z "$PID" ]; then
+          PID=$(lsof -t -i :8080)
+          if [ -n "$PID" ]; then
+            echo "Killing process using port 8080 (PID: $PID)"
             kill -9 $PID
+          else
+            echo "No process using port 8080"
           fi
-    
-          # 새로운 .jar 실행
+        
           cd /home/ubuntu/DoMo-back
-          nohup java -jar project.jar > log.out 2>&1 &
-      
+          nohup java -jar project.jar > log.out 2>&1 & disown
+              
