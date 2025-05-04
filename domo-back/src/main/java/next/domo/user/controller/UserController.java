@@ -1,12 +1,11 @@
 package next.domo.user.controller;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import next.domo.user.dto.ChangePasswordRequestDto;
-import next.domo.user.dto.UserLoginRequestDto;
-import next.domo.user.dto.UserOnboardingRequestDto;
-import next.domo.user.dto.UserSignUpRequestDto;
+import next.domo.user.dto.*;
 import next.domo.user.service.UserService;
 
 import org.springframework.http.ResponseEntity;
@@ -151,5 +150,49 @@ public class UserController {
         }
         
         return ResponseEntity.ok(url);
+    }
+
+    @Operation(summary = "예상소요시간 계산 선호도 수정",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "수정할 예상소요시간 계산 선호도 JSON 데이터",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(
+                                    type = "object",
+                                    example = "{\n \"workPace\": \"TIGHT\"  }"
+                            )
+                    )
+            ))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "예상소요시간 계산 선호도 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "예상소요시간 계산 선호도 수정 실패")
+    })
+    @PatchMapping("/users/work-pace")
+    public ResponseEntity<Void> updateWorkPace(HttpServletRequest request, @RequestBody UpdateWorkPaceRequestDto updateWorkPaceRequestDto) {
+        Long userId = userService.getUserIdFromToken(request);
+        userService.updateWorkPace(userId, updateWorkPaceRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "세부화 선호도 수정",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "세부화 선호도 JSON 데이터",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(
+                                    type = "object",
+                                    example = "{\n \"detailPreference\": \"MANY_TASKS\"  }"
+                            )
+                    )
+            ))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "세부화 선호도 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "세부화 선호도 수정 실패")
+    })
+    @PatchMapping("/users/detail-preference")
+    public ResponseEntity<Void> updateDetailPreference(HttpServletRequest request, @RequestBody UpdateDetailPreferenceRequestDto updateDetailPreferenceRequestDto) {
+        Long userId = userService.getUserIdFromToken(request);
+        userService.updateDetailPreference(userId, updateDetailPreferenceRequestDto);
+        return ResponseEntity.ok().build();
     }
 }

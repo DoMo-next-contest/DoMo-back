@@ -6,12 +6,11 @@ import lombok.RequiredArgsConstructor;
 import next.domo.jwt.JwtProvider;
 import next.domo.project.entity.ProjectTag;
 import next.domo.project.repository.ProjectTagRepository;
-import next.domo.user.dto.ChangePasswordRequestDto;
-import next.domo.user.dto.UserLoginRequestDto;
-import next.domo.user.dto.UserOnboardingRequestDto;
-import next.domo.user.dto.UserSignUpRequestDto;
+import next.domo.user.dto.*;
 import next.domo.user.entity.User;
 import next.domo.user.enums.OnboardingTagType;
+import next.domo.user.enums.TaskDetailPreference;
+import next.domo.user.enums.WorkPace;
 import next.domo.user.repository.UserRepository;
 import next.domo.upload.service.S3Service;
 
@@ -122,8 +121,8 @@ public class UserService {
         User user = userRepository.findById(userId)
         .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
         
-        user.setDetailPreference(requestDto.getDetailPreference());
-        user.setWorkPace(requestDto.getWorkPace());
+        user.updateDetailPreference(requestDto.getDetailPreference());
+        user.updateWorkPace(requestDto.getWorkPace());
         
         // 관심 태그 기반 project tag 자동 생성
         for (OnboardingTagType tagEnum : requestDto.getInterestedTags()) {
@@ -187,5 +186,16 @@ public class UserService {
             .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         return user.getCharacterFileUrl();
     }
-    
+
+    public void updateWorkPace(Long userId, UpdateWorkPaceRequestDto updateWorkPaceRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.updateWorkPace(updateWorkPaceRequestDto.getWorkPace());
+    }
+
+    public void updateDetailPreference(Long userId, UpdateDetailPreferenceRequestDto updateDetailPreferenceRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.updateDetailPreference(updateDetailPreferenceRequestDto.getDetailPreference());
+    }
 }
