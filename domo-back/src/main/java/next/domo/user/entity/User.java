@@ -1,15 +1,12 @@
 package next.domo.user.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
-import jakarta.persistence.Table;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import next.domo.user.enums.TaskDetailPreference;
 import next.domo.user.enums.WorkPace;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -47,11 +44,11 @@ public class User {
         this.password = newPassword;
     }
 
-    public void setDetailPreference(TaskDetailPreference detailPreference) {
+    public void updateDetailPreference (TaskDetailPreference detailPreference) {
         this.detailPreference = detailPreference;
     }
     
-    public void setWorkPace(WorkPace workPace) {
+    public void updateWorkPace(WorkPace workPace) {
         this.workPace = workPace;
     }
 
