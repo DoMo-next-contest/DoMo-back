@@ -13,6 +13,7 @@ import next.domo.user.repository.UserRepository;
 import next.domo.user.service.UserService;
 import next.domo.user.service.UserTagService;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -187,7 +188,28 @@ public class ProjectService {
 
         //  사용자 하위작업 태그 예측 대비 소요율 갱신
         userTagService.updateUserTagRates(user);
-}
+    }
+
+    public List<ProjectListResponseDto> getProjectListResponses(List<Long> projectTagIds, String sortBy) {
+        Sort sort = switch (sortBy) {
+            case "name" -> Sort.by("projectName").ascending();
+            case "progress" -> Sort.by("projectProgressRate").descending();
+            case "deadline" -> Sort.by("projectDeadline").ascending();
+            default -> Sort.unsorted();
+        };
+
+        List<Project> projects;
+
+        if (projectTagIds != null && !projectTagIds.isEmpty()) {
+            projects = projectRepository.findByProjectTag_ProjectTagIdIn(projectTagIds, sort);
+        } else {
+            projects = projectRepository.findAll(sort);
+        }
+
+        return projects.stream()
+                .map(ProjectListResponseDto::from)
+                .toList();
+    }
 
 }
 

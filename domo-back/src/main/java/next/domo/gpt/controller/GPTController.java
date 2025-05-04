@@ -39,8 +39,8 @@ public class GPTController {
             @ApiResponse(responseCode = "200", description = "GPT로 하위작업 생성 성공"),
             @ApiResponse(responseCode = "4XX", description = "GPT로 하위작업 생성 실패")
     })
-    @PostMapping("/{projectId}/subtasks")
-    public String createSubTaskByGPT(HttpServletRequest request, @Parameter(description = "하위작업을 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody GPTRequestDto GPTRequestDto) {
+    @PostMapping("/subtasks")
+    public String createSubTaskByGPT(HttpServletRequest request, @RequestBody GPTRequestDto GPTRequestDto) {
         Long userId = userService.getUserIdFromToken(request);
         return gptService.createSubTaskByGPT(userId, GPTRequestDto);
     }
