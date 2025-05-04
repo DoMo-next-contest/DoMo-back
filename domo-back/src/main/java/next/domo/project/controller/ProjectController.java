@@ -1,5 +1,8 @@
 package next.domo.project.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import next.domo.project.dto.*;
 import next.domo.project.entity.Project;
@@ -129,4 +132,28 @@ public class ProjectController {
             projectService.completeAndRewardProject(project, levelType);
             return ResponseEntity.ok("프로젝트 완료 및 코인 계산 성공!");
         }
+
+    @Operation(summary = "프로젝트 tag별 필터링 및 정렬",
+            description = """
+            프로젝트를 정렬 기준(name, progress, deadline)에 따라 정렬하고 선택한 태그 ID 리스트(tagIds)에 해당하는 프로젝트만 필터링합니다.
+            여러 개의 tagIds를 넘기려면 ?tagIds=1&tagIds=2 형식으로 요청하세요. ex) /projects?tagIds=1&tagIds=3&sortBy=deadline
+            """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로젝트 tag별 필터링 및 정렬 성공"),
+            @ApiResponse(responseCode = "4XX", description = "프로젝트 tag별 필터링 및 정렬 실패")
+    })
+    @GetMapping("/filter")
+    public ResponseEntity<List<ProjectListResponseDto>> getProjectsByProjectTagAndSort(
+            @Parameter(
+                    description = "선택할 프로젝트 태그 ID 리스트 (여러 개 가능)",
+                    example = "1, 2"
+            )@RequestParam(required = false) List<Long> projectTagIds,
+            @Parameter(
+                    description = "정렬 기준 (name, progress, deadline 중 하나)",
+                    example = "progress"
+            ) @RequestParam(required = false) String sortBy
+    ) {
+        return ResponseEntity.ok(projectService.getProjectListResponses(projectTagIds, sortBy));
+    }
 }
