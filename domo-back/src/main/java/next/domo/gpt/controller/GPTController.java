@@ -2,8 +2,6 @@ package next.domo.gpt.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.gpt.service.GPTService;
 import next.domo.user.service.UserService;
-import next.domo.gpt.dto.GPTRequestDto;
 
 import org.springframework.web.bind.annotation.*;
 
