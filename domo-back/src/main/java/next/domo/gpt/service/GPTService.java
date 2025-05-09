@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.gpt.dto.GPTRequestDto;
+import next.domo.project.entity.Project;
+import next.domo.project.repository.ProjectRepository;
 import next.domo.subtask.entity.SubTaskTag;
 import next.domo.user.entity.User;
 import next.domo.user.entity.UserTag;
@@ -31,12 +33,14 @@ public class GPTService{
     private final WebClient webClient;
     private final UserTagRepository userTagRepository;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
     private final String apiKey;
 
-    public GPTService(@Value("${openai.api-key}") String apiKey, UserTagRepository userTagRepository, UserRepository userRepository) {
+    public GPTService(@Value("${openai.api-key}") String apiKey, UserTagRepository userTagRepository, UserRepository userRepository, ProjectRepository projectRepository) {
         this.apiKey = apiKey;
         this.userTagRepository = userTagRepository;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
         this.webClient = WebClient.builder()
                 .baseUrl("https://api.openai.com/v1/chat/completions")
                 .defaultHeader("Authorization", "Bearer " + apiKey)
@@ -45,10 +49,11 @@ public class GPTService{
     }
 
     // userProfile이 생기면 수정 (tagRate 관련)
-    public String createSubTaskByGPT(Long userId, GPTRequestDto gptRequestDto) {
+    public String createSubTaskByGPT(Long userId, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 프로젝트를 찾을 수 없습니다."));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 아이디를 가진 사용자를 찾을 수 없습니다."));
-        // userTag(user의 정보) 찾기
         List<UserTag> userTags = userTagRepository.findByUserUserId(userId);
         // userTag 퍼센트 저장 map
         Map<SubTaskTag, Float> tagRateMap = userTags.stream()
@@ -100,11 +105,11 @@ public class GPTService{
                 """,
                 user.getDetailPreference(),
                 user.getWorkPace(),
-                gptRequestDto.getProjectName(),
-                gptRequestDto.getProjectDescription(),
-                gptRequestDto.getProjectRequirement(),
+                project.getProjectName(),
+                project.getProjectDescription(),
+                project.getProjectRequirement(),
                 LocalDate.now(),
-                gptRequestDto.getProjectDeadline(),
+                project.getProjectDeadline(),
                 documentation,
                 planning,
                 development,
