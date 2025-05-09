@@ -147,7 +147,7 @@ public class SubTaskService {
                 .subTaskName(subTask.getSubTaskName())
                 .subTaskOrder(subTask.getSubTaskOrder())
                 .subTaskExpectedTime(subTask.getSubTaskExpectedTime())
-                .subTaskActualTime(subTask.getSubTaskActualTime())
+                .subTaskActualTime(subTask.getSubTaskActualTime() != null ? subTask.getSubTaskActualTime() : 0)
                 .subTaskTag(subTask.getSubTaskTag())
                 .subTaskIsDone(subTask.isSubTaskIsDone())
                 .build();
