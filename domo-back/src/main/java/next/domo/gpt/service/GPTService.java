@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import next.domo.gpt.dto.GPTRequestDto;
 import next.domo.project.entity.Project;
 import next.domo.project.repository.ProjectRepository;
 import next.domo.subtask.entity.SubTaskTag;
@@ -21,7 +20,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static next.domo.subtask.entity.SubTaskTag.*;
