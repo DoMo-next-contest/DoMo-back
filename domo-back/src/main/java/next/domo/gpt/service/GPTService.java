@@ -6,7 +6,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.project.entity.Project;
 import next.domo.project.repository.ProjectRepository;
+import next.domo.subtask.entity.SubTask;
 import next.domo.subtask.entity.SubTaskTag;
+import next.domo.subtask.repository.SubTaskRepository;
 import next.domo.user.entity.User;
 import next.domo.user.entity.UserTag;
 import next.domo.user.repository.UserRepository;
@@ -32,13 +34,15 @@ public class GPTService{
     private final UserTagRepository userTagRepository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final SubTaskRepository subTaskRepository;
     private final String apiKey;
 
-    public GPTService(@Value("${openai.api-key}") String apiKey, UserTagRepository userTagRepository, UserRepository userRepository, ProjectRepository projectRepository) {
+    public GPTService(@Value("${openai.api-key}") String apiKey, UserTagRepository userTagRepository, UserRepository userRepository, ProjectRepository projectRepository, SubTaskRepository subTaskRepository) {
         this.apiKey = apiKey;
         this.userTagRepository = userTagRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.subTaskRepository = subTaskRepository;
         this.webClient = WebClient.builder()
                 .baseUrl("https://api.openai.com/v1/chat/completions")
                 .defaultHeader("Authorization", "Bearer " + apiKey)
@@ -142,7 +146,27 @@ public class GPTService{
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode root = objectMapper.readTree(rawResponse);
-            return root.path("choices").get(0).path("message").path("content").asText();
+            String content = root.path("choices").get(0).path("message").path("content").asText();
+
+            // 하위 작업 리스트 추출
+            JsonNode subTaskList = objectMapper.readTree(content).path("subTaskList");
+            if (subTaskList.isMissingNode() || !subTaskList.isArray()) {
+                throw new RuntimeException("GPT 응답에서 subTaskList가 누락되었습니다.");
+            }
+
+            for (JsonNode subTaskNode : subTaskList) {
+                SubTask subTask = SubTask.builder()
+                        .subTaskOrder(subTaskNode.get("subTaskOrder").asInt())
+                        .subTaskName(subTaskNode.get("subTaskName").asText())
+                        .subTaskExpectedTime(subTaskNode.get("subTaskExpectedTime").asInt())
+                        .subTaskTag(SubTaskTag.valueOf(subTaskNode.get("subTaskTag").asText()))
+                        .project(project)
+                        .build();
+
+                subTaskRepository.save(subTask);
+            }
+
+            return content;
         } catch (Exception e) {
             throw new RuntimeException("GPT 응답 파싱 실패", e);
         }
