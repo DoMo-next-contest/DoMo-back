@@ -107,17 +107,17 @@ public class SubTaskService {
     }
 
     // subtask 수정사항 한번에 저장
-    public void updateSubTaskByProject(Long userId, Long projectId, List<SubTaskUpdateDto> subTaskUpdateDtos) {
+    public void updateSubTaskByProject(Long userId, Long projectId, List<SubTaskAllUpdateDto> subTaskAllUpdateDtos) {
         Project project = validateProjectOwner(userId, projectId);
         List<SubTask> subTasks = subTaskRepository.findAllByProject(project);
 
-        Map<Long, SubTaskUpdateDto> dtoMap = subTaskUpdateDtos.stream()
-                .collect(Collectors.toMap(SubTaskUpdateDto::getSubTaskId, dto -> dto));
+        Map<Long, SubTaskAllUpdateDto> dtoMap = subTaskAllUpdateDtos.stream()
+                .collect(Collectors.toMap(SubTaskAllUpdateDto::getSubTaskId, dto -> dto));
 
         for (SubTask subTask : subTasks) {
-            SubTaskUpdateDto dto = dtoMap.get(subTask.getSubTaskId());
+            SubTaskAllUpdateDto dto = dtoMap.get(subTask.getSubTaskId());
             if (dto != null) {
-                subTask.updateSubTask(dto);
+                subTask.updateAllSubTask(dto);
             }
         }
 
@@ -138,7 +138,19 @@ public class SubTaskService {
         }
     }
 
-    // subtask tag 별 시간 계산
+    // subtask 미완료
+    public void undoneSubTask(Long userId, Long subTaskId) {
+        SubTask subTask = validateSubTaskOwner(userId, subTaskId);
+        subTask.undoneSubTask();
+
+        Project project = subTask.getProject();
+
+        // '모두 완료' 상태가 깨졌다면 프로젝트 상태를 다시 되돌림
+        if (project.isAlmostDone()) {
+            project.markAsInProcess();
+            projectRepository.save(project);
+        }
+    }
 
 
     private SubTaskResponseDto toDto(SubTask subTask) {

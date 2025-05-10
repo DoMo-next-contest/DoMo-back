@@ -9,10 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import next.domo.subtask.dto.SubTaskCreateDto;
-import next.domo.subtask.dto.SubTaskResponseDto;
-import next.domo.subtask.dto.SubTaskTimeDto;
-import next.domo.subtask.dto.SubTaskUpdateDto;
+import next.domo.subtask.dto.*;
 import next.domo.subtask.service.SubTaskService;
 import next.domo.user.service.UserService;
 
@@ -38,7 +35,7 @@ public class SubTaskController {
                     content = @Content(
                             schema = @Schema(
                                     type = "object",
-                                    example = "{\n \"projectId\": \"1\", \n \"subTaskName\": \"전체적인 계획 짜기\", \n \"subTaskExpectedTime\": 60, \n \"subTaskTag\": \"DOCUMENTATION\"  }"
+                                    example = "{\n \"subTaskName\": \"전체적인 계획 짜기\", \n \"subTaskExpectedTime\": 60, \n \"subTaskOrder\": 1  }"
                             )
                     )
             )
@@ -47,7 +44,7 @@ public class SubTaskController {
             @ApiResponse(responseCode = "200", description = "하위작업 추가 성공"),
             @ApiResponse(responseCode = "4XX", description = "하위작업 추가 실패")
     })
-    @PostMapping("")
+    @PostMapping("/{projectId}")
     public ResponseEntity<String> createSubTask(HttpServletRequest request, @Parameter(description = "하위작업을 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody SubTaskCreateDto subTaskCreateDto) {
         Long userId = userService.getUserIdFromToken(request);
         subTaskService.addSubTask(userId, projectId, subTaskCreateDto);
@@ -79,7 +76,7 @@ public class SubTaskController {
                     content = @Content(
                             schema = @Schema(
                                     type = "object",
-                                    example = "{\n \"subTaskName\": \"일정 수정하기\", \n \"subTaskExpectedTime\": 30, \n \"subTaskTag\": \"PLANNING_STRATEGY\"  }"
+                                    example = "{\n \"subTaskName\": \"일정 수정하기\", \n \"subTaskExpectedTime\": 30, \n \"subTaskOrder\": 1  }"
                             )
                     )
             )
@@ -145,7 +142,7 @@ public class SubTaskController {
                     content = @Content(
                             schema = @Schema(
                                     type = "object",
-                                    example = "[\n {\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskTag\": \"DOCUMENTATION\",\n \"subTaskOrder\": 1\n },\n {\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskTag\": \"COMMUNICATION\",\n \"subTaskOrder\": 2\n }\n ]"
+                                    example = "[\n {\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskOrder\": 1\n },\n {\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskOrder\": 2\n }\n ]"
                             )
                     )
             )
@@ -155,7 +152,7 @@ public class SubTaskController {
             @ApiResponse(responseCode = "4XX", description = "프로젝트 별로 subtask 한번에 생성 후 저장 실패")
     })
     @PostMapping("/{projectId}/subtasks")
-    public ResponseEntity<String> createSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 수정할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskCreateDto> subTaskCreateDtos){
+    public ResponseEntity<String> createSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskCreateDto> subTaskCreateDtos){
         Long userId = userService.getUserIdFromToken(request);
         subTaskService.createSubTaskByProject(userId, projectId, subTaskCreateDtos);
         return ResponseEntity.ok("프로젝트 별로 하위작업 수정사항 한번에 저장 성공");
@@ -179,9 +176,9 @@ public class SubTaskController {
             @ApiResponse(responseCode = "4XX", description = "프로젝트 별로 하위작업 수정사항 한번에 저장 실패")
     })
     @PutMapping("/{projectId}/subtasks")
-    public ResponseEntity<String> updateSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 수정할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskUpdateDto> subTaskUpdateDtos){
+    public ResponseEntity<String> updateSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 수정할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskAllUpdateDto> subTaskAllUpdateDtos){
         Long userId = userService.getUserIdFromToken(request);
-        subTaskService.updateSubTaskByProject(userId, projectId, subTaskUpdateDtos);
+        subTaskService.updateSubTaskByProject(userId, projectId, subTaskAllUpdateDtos);
         return ResponseEntity.ok("프로젝트 별로 하위작업 수정사항 한번에 저장 성공");
     }
 
@@ -204,5 +201,27 @@ public class SubTaskController {
                 Long userId = userService.getUserIdFromToken(request);
                 subTaskService.doneSubTask(userId, subTaskId);
                 return ResponseEntity.ok("하위작업 완료 성공");
-        }
+    }
+
+    // subtask 미완료
+    @Operation(summary = "하위작업 미완료",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "완료시 요청 JSON 데이터 없음"
+            )
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "하위작업 미완료 성공"),
+            @ApiResponse(responseCode = "4XX", description = "하위작업 미완료 실패")
+    })
+    @PutMapping("/{subTaskId}/undone")
+    public ResponseEntity<String> undoneSubTask(
+            HttpServletRequest request,
+            @Parameter(description = "미완료할 하위작업 ID", required = true, example = "1")
+            @PathVariable Long subTaskId
+    ) {
+        Long userId = userService.getUserIdFromToken(request);
+        subTaskService.undoneSubTask(userId, subTaskId);
+        return ResponseEntity.ok("하위작업 미완료 성공");
+    }
+
 }
