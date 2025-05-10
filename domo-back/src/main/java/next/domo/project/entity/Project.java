@@ -75,6 +75,8 @@ public class Project {
 
     @Enumerated(EnumType.STRING)
     private ProjectStatus projectStatus;
+
+    public boolean isAlmostDone() { return this.projectStatus == ProjectStatus.ALMOST_DONE; }
     
     public void markAsDone() {
         this.projectStatus = ProjectStatus.DONE;
@@ -82,6 +84,10 @@ public class Project {
 
     public void markAsAlmostDone() {
         this.projectStatus = ProjectStatus.ALMOST_DONE;
+    }
+
+    public void markAsInProcess() {
+        this.projectStatus = ProjectStatus.IN_PROGRESS;
     }
 
     public void setProjectExpectedTime(Integer projectExpectedTime) {
