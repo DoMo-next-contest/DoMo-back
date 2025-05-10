@@ -107,4 +107,12 @@ public class Project {
     public void setProjectCoin(Integer projectCoin) {
         this.projectCoin = projectCoin;
     }
+
+    public Integer getProjectProgressRate() {
+        return this.projectProgressRate;
+    }
+    
+    public String getProjectDescription() {
+        return this.projectDescription;
+    }
 }

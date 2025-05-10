@@ -1,14 +1,23 @@
 package next.domo.config;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@OpenAPIDefinition(
+    info = @Info(
+        title = "NE:XT DoMo 프로젝트 API 문서",
+        version = "v1.0.0",
+        description = "DoMo 백엔드 서비스 API 문서입니다."
+    )
+)
 public class SwaggerConfig {
 
     @Bean
@@ -23,7 +32,7 @@ public class SwaggerConfig {
                         )
                 )
                 .addSecurityItem(new SecurityRequirement().addList("accessToken"))
-                .info(new Info()
+                .info(new io.swagger.v3.oas.models.info.Info()
                         .title("NE:XT DoMo 프로젝트 API 문서")
                         .version("v1.0.0")
                         .description("회원가입 (/api/user/signup), 로그인 (/api/user/login) 시, accessToken과 refreshToken 모두 헤더로 전달\n" +

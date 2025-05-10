@@ -31,9 +31,9 @@ public class ProjectController {
         @ApiResponse(responseCode = "400", description = "프로젝트 생성 실패")
     })
     @PostMapping
-    public ResponseEntity<String> createProject(@RequestBody ProjectCreateRequestDto requestDto) {
-        projectService.createProject(requestDto);
-        return ResponseEntity.ok("프로젝트 생성 성공!");
+    public ResponseEntity<ProjectCreateResponseDto> createProject(@RequestBody ProjectCreateRequestDto requestDto) {
+        ProjectCreateResponseDto response = projectService.createProject(requestDto);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "모든 프로젝트 리스트 조회 (이름, 태그명, 데드라인)")
@@ -116,22 +116,19 @@ public class ProjectController {
 
     @Operation(
         summary = "프로젝트 완료 처리 및 보상 계산",
-        description = "모든 하위작업이 완료된 프로젝트에 대해 난이도(상, 중, 하)를 입력받아 난이도 계수를 설정하고, 예상 소요 시간 기반으로 코인을 계산하여 프로젝트를 최종 완료 처리합니다."
-        )
+        description = "모든 하위작업이 완료된 프로젝트에 대해 GPT가 저장한 난이도(projectLevel)를 기반으로 코인을 계산하여 프로젝트를 최종 완료 처리합니다."
+    )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "프로젝트 완료 및 코인 계산 성공"),
         @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 프로젝트 상태 오류"),
         @ApiResponse(responseCode = "404", description = "프로젝트를 찾을 수 없습니다")
     })
     @PutMapping("/{projectId}/complete")
-    public ResponseEntity<String> completeAndRewardProject(
-        @PathVariable Long projectId,
-        @RequestParam("level") ProjectLevelType levelType
-        ) {
-            Project project = projectService.getProjectEntityById(projectId);
-            projectService.completeAndRewardProject(project, levelType);
-            return ResponseEntity.ok("프로젝트 완료 및 코인 계산 성공!");
-        }
+    public ResponseEntity<ProjectCompletionResponseDto> completeAndRewardProject(@PathVariable Long projectId) {
+        Project project = projectService.getProjectEntityById(projectId);
+        int coin = projectService.completeAndRewardProject(project);
+        return ResponseEntity.ok(new ProjectCompletionResponseDto("프로젝트 완료 및 코인 계산 성공!", coin));
+    }
 
     @Operation(summary = "프로젝트 tag별 필터링 및 정렬",
             description = """

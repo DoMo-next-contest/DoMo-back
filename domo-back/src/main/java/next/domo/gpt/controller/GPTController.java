@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.gpt.service.GPTService;
+import next.domo.project.entity.ProjectLevelType;
 import next.domo.user.service.UserService;
 
 import org.springframework.web.bind.annotation.*;
@@ -31,5 +32,16 @@ public class GPTController {
         return gptService.createSubTaskByGPT(userId, projectId);
     }
 
-
+    @Operation(summary = "GPT로 프로젝트 난이도 예측 및 저장")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로젝트 난이도 예측 성공"),
+            @ApiResponse(responseCode = "4XX", description = "예측 실패")
+    })
+    @PostMapping("/{projectId}/predict-level")
+    public ProjectLevelType predictProjectLevelByGPT(HttpServletRequest request,
+                                                     @Parameter(description = "난이도 예측할 프로젝트 ID", required = true, example = "1")
+                                                     @PathVariable Long projectId) {
+        Long userId = userService.getUserIdFromToken(request);
+        return gptService.predictProjectLevelByGPT(projectId);
+    }
 }
