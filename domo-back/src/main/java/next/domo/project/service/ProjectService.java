@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import next.domo.project.dto.*;
 import next.domo.project.entity.Project;
 import next.domo.project.entity.ProjectLevelType;
+import next.domo.project.entity.ProjectStatus;
 import next.domo.project.entity.ProjectTag;
 import next.domo.project.repository.ProjectRepository;
 import next.domo.project.repository.ProjectTagRepository;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.lang.IllegalStateException;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class ProjectService {
     private final SubTaskRepository subTaskRepository;
     private final UserTagService userTagService;
 
-    public void createProject(ProjectCreateRequestDto requestDto) {
+    public ProjectCreateResponseDto createProject(ProjectCreateRequestDto requestDto) {
         Long userId = userService.getCurrentUserId();
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
@@ -48,9 +50,17 @@ public class ProjectService {
                 .projectRequirement(requestDto.getProjectRequirement())
                 .projectDeadline(requestDto.getProjectDeadline())
                 .projectExpectedTime(0) // 하위 작업으로 합산 예정
+                .projectProgressRate(0)
+                .projectStatus(ProjectStatus.IN_PROGRESS)
                 .build();
 
         projectRepository.save(project);
+
+        return new ProjectCreateResponseDto(
+            project.getProjectId(),
+            project.getProjectDescription(),
+            project.getProjectProgressRate()
+            );
     }
 
     public List<ProjectListResponseDto> getAllProjects() {
@@ -155,9 +165,10 @@ public class ProjectService {
                 .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
     }
 
-    public void completeAndRewardProject(Project project, ProjectLevelType levelType) {
-        // 난이도 계수 설정
-        project.setProjectLevel(levelType.getFactor());
+    public int completeAndRewardProject(Project project) {
+        // 저장된 난이도 계수 사용
+        Integer levelFactorInt = project.getProjectLevel(); // 60, 50, 40 중 하나
+        if (levelFactorInt == null) throw new IllegalStateException("프로젝트 난이도가 설정되지 않았습니다.");
 
         // 예상 소요 시간 (분 → 시간으로 환산)
         Integer expectedMinutes = project.getProjectExpectedTime();
@@ -173,7 +184,7 @@ public class ProjectService {
         }
 
         // 난이도 계수 적용 + 코인 계산
-        double levelFactor = levelType.getFactor() / 100.0;
+        double levelFactor = levelFactorInt / 100.0;
         int coin = (int) (baseScore * levelFactor * expectedHours);
 
         // 저장
@@ -188,6 +199,8 @@ public class ProjectService {
 
         //  사용자 하위작업 태그 예측 대비 소요율 갱신
         userTagService.updateUserTagRates(user);
+
+        return coin;
     }
 
     public List<ProjectListResponseDto> getProjectListResponses(List<Long> projectTagIds, String sortBy) {

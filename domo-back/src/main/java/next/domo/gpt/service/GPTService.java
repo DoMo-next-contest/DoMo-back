@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import next.domo.project.entity.Project;
+import next.domo.project.entity.ProjectLevelType;
 import next.domo.project.repository.ProjectRepository;
 import next.domo.subtask.entity.SubTask;
 import next.domo.subtask.entity.SubTaskTag;
@@ -170,7 +171,78 @@ public class GPTService{
         } catch (Exception e) {
             throw new RuntimeException("GPT 응답 파싱 실패", e);
         }
+    }
 
+    public ProjectLevelType predictProjectLevelByGPT(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 프로젝트를 찾을 수 없습니다."));
 
+        LocalDate now = LocalDate.now();
+
+        String userMessage = String.format("""
+                너는 프로젝트 난이도를 예측해주는 AI야.
+
+                아래 정보를 바탕으로 프로젝트의 난이도를 '상', '중', '하' 중 하나로 판단해줘.
+
+                - 프로젝트 이름: %s
+                - 프로젝트 설명: %s
+                - 프로젝트 요구사항: %s
+                - 오늘 날짜: %s
+                - 마감 기한: %s
+                - 예상 소요 시간 (분 단위): %d
+
+                판단 기준은 다음과 같아:
+                - 프로젝트 마감까지 시간이 촉박해서 마감기한 내에 프로젝트 해결이 어렵거나,
+                - 예상 소요 시간이 너무 길거나,
+                - 요구사항이 많고 복잡해 보이면 '상'
+                - 일반적이고 평이한 수준이면 '중'
+                - 간단하거나 여유롭고 쉬워 보이면 '하'
+
+                결과는 반드시 다음 형식의 JSON으로 응답해:
+                { "projectLevel": "상" }
+                """,
+                project.getProjectName(),
+                project.getProjectDescription(),
+                project.getProjectRequirement(),
+                now,
+                project.getProjectDeadline(),
+                project.getProjectExpectedTime()
+        );
+
+        Map<String, Object> message1 = Map.of(
+                "role", "system",
+                "content", "You are a helpful assistant."
+        );
+        Map<String, Object> message2 = Map.of(
+                "role", "user",
+                "content", userMessage
+        );
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("messages", List.of(message1, message2));
+
+        String rawResponse = webClient.post()
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(rawResponse);
+            String content = root.path("choices").get(0).path("message").path("content").asText();
+            String projectLevelStr = mapper.readTree(content).path("projectLevel").asText();
+
+            ProjectLevelType level = ProjectLevelType.from(projectLevelStr);
+
+            // 결과 저장
+            project.setProjectLevel(level.getFactor());
+            projectRepository.save(project);
+
+            return level;
+        } catch (Exception e) {
+            throw new RuntimeException("GPT 난이도 예측 실패", e);
+        }
     }
 }
