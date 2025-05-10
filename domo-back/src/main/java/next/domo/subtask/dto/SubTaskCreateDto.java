@@ -10,7 +10,6 @@ public class SubTaskCreateDto {
     private String subTaskName;
     private int subTaskOrder;
     private int subTaskExpectedTime;
-    private SubTaskTag subTaskTag;
 
     public SubTask toEntity(Project project) {
         return SubTask.builder()
@@ -18,7 +17,7 @@ public class SubTaskCreateDto {
                 .subTaskOrder(this.getSubTaskOrder())
                 .subTaskExpectedTime(this.getSubTaskExpectedTime())
                 .subTaskIsDone(false)
-                .subTaskTag(this.getSubTaskTag())
+                .subTaskTag(SubTaskTag.DEFAULT)
                 .project(project)
                 .build();
     }
