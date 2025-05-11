@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    boolean existsByItemImageUrl(String imageUrl);
+    boolean existsByItemName(String itemName);
 }
