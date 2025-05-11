@@ -34,7 +34,7 @@ public class ProjectService {
     private final SubTaskRepository subTaskRepository;
     private final UserTagService userTagService;
 
-    public ProjectCreateResponseDto createProject(ProjectCreateRequestDto requestDto) {
+    public Long createProject(ProjectCreateRequestDto requestDto) {
         Long userId = userService.getCurrentUserId();
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
@@ -55,12 +55,7 @@ public class ProjectService {
                 .build();
 
         projectRepository.save(project);
-
-        return new ProjectCreateResponseDto(
-            project.getProjectId(),
-            project.getProjectDescription(),
-            project.getProjectProgressRate()
-            );
+        return project.getProjectId();
     }
 
     public List<ProjectListResponseDto> getAllProjects() {
@@ -70,7 +65,9 @@ public class ProjectService {
                         project.getProjectId(),
                         project.getProjectName(),
                         project.getProjectTag().getProjectTagName(),
-                        project.getProjectDeadline()
+                        project.getProjectDeadline(),
+                        project.getProjectProgressRate(),
+                        project.getProjectDescription()
                 )).collect(Collectors.toList());
     }
 
