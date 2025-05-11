@@ -155,18 +155,6 @@ public class GPTService{
                 throw new RuntimeException("GPT 응답에서 subTaskList가 누락되었습니다.");
             }
 
-            for (JsonNode subTaskNode : subTaskList) {
-                SubTask subTask = SubTask.builder()
-                        .subTaskOrder(subTaskNode.get("subTaskOrder").asInt())
-                        .subTaskName(subTaskNode.get("subTaskName").asText())
-                        .subTaskExpectedTime(subTaskNode.get("subTaskExpectedTime").asInt())
-                        .subTaskTag(SubTaskTag.valueOf(subTaskNode.get("subTaskTag").asText()))
-                        .project(project)
-                        .build();
-
-                subTaskRepository.save(subTask);
-            }
-
             return content;
         } catch (Exception e) {
             throw new RuntimeException("GPT 응답 파싱 실패", e);
