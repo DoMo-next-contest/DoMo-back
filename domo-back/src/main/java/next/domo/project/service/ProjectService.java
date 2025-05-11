@@ -47,7 +47,7 @@ public class ProjectService {
                 .projectTag(tag)
                 .projectName(requestDto.getProjectName())
                 .projectDescription(requestDto.getProjectDescription())
-                .projectRequirement(requestDto.getProjectRequirement())
+                .projectRequirement(requestDto.getProjectRequirement() != null ? requestDto.getProjectRequirement() : "")
                 .projectDeadline(requestDto.getProjectDeadline())
                 .projectExpectedTime(0) // 하위 작업으로 합산 예정
                 .projectProgressRate(0)
@@ -163,6 +163,12 @@ public class ProjectService {
     }
 
     public int completeAndRewardProject(Project project) {
+        // ✅ 하위작업 존재 여부 확인
+        int subTaskCount = subTaskRepository.countAllByProjectId(project.getProjectId());
+        if (subTaskCount == 0) {
+            throw new IllegalStateException("하위작업이 존재하지 않으므로 프로젝트를 완료할 수 없습니다.");
+        }
+
         // 저장된 난이도 계수 사용
         Integer levelFactorInt = project.getProjectLevel(); // 60, 50, 40 중 하나
         if (levelFactorInt == null) throw new IllegalStateException("프로젝트 난이도가 설정되지 않았습니다.");
@@ -198,6 +204,20 @@ public class ProjectService {
         userTagService.updateUserTagRates(user);
 
         return coin;
+    }
+
+    public List<ProjectListResponseDto> getCompletedProjects() {
+        Long userId = userService.getCurrentUserId();
+        return projectRepository.findByUserUserId(userId).stream()
+                .filter(project -> project.getProjectStatus() == ProjectStatus.DONE)
+                .map(project -> new ProjectListResponseDto(
+                        project.getProjectId(),
+                        project.getProjectName(),
+                        project.getProjectTag().getProjectTagName(),
+                        project.getProjectDeadline(),
+                        project.getProjectProgressRate(),
+                        project.getProjectDescription()
+                )).collect(Collectors.toList());
     }
 
     public List<ProjectListResponseDto> getProjectListResponses(List<Long> projectTagIds, String sortBy) {

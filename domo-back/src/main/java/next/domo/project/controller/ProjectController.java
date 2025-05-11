@@ -131,6 +131,17 @@ public class ProjectController {
         return ResponseEntity.ok(new ProjectCompletionResponseDto("프로젝트 완료 및 코인 계산 성공!", coin));
     }
 
+    @Operation(summary = "완료된 프로젝트 리스트 조회 (이름, 태그명, 데드라인, 진행률, 설명)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "완료된 프로젝트 리스트 조회 성공"),
+        @ApiResponse(responseCode = "400", description = "완료된 프로젝트 리스트 조회 실패")
+    })
+    @GetMapping("/completed")
+    public ResponseEntity<List<ProjectListResponseDto>> getCompletedProjects() {
+        List<ProjectListResponseDto> completedProjects = projectService.getCompletedProjects();
+        return ResponseEntity.ok(completedProjects);
+    }
+
     @Operation(summary = "프로젝트 tag별 필터링 및 정렬",
             description = """
             프로젝트를 정렬 기준(name, progress, deadline)에 따라 정렬하고 선택한 태그 ID 리스트(tagIds)에 해당하는 프로젝트만 필터링합니다.
