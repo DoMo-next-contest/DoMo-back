@@ -82,4 +82,3 @@ jobs:
         
           cd /home/ubuntu/DoMo-back
           nohup java -jar project.jar > log.out 2>&1 & disown
-              
