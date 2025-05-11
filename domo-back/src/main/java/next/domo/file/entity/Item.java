@@ -24,4 +24,6 @@ public class Item {
 
     private String itemImageUrl;
 
+    private String item2dImageUrl;
+
 }

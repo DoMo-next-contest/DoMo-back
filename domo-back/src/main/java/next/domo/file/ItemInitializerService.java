@@ -13,6 +13,9 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class ItemInitializerService {
@@ -45,19 +48,41 @@ public class ItemInitializerService {
                 .prefix(folder + "/")
                 .build());
 
+        Map<String, Item> itemMap = new HashMap<>();
+
         for (S3Object object : response.contents()) {
             String key = object.key();
             if (key.endsWith("/")) continue;
+
             String fileName = key.substring(key.lastIndexOf("/") + 1);
-            String name = fileName.replace(".glb", "");
+            String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+            String extension = fileName.substring(fileName.lastIndexOf('.') + 1); 
 
-            if (itemRepository.existsByItemImageUrl("https://" + bucket + ".s3." + region + ".amazonaws.com/" + key)) continue;
+            String url = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
 
-            Item item = Item.builder()
-                    .itemName(name)
-                    .itemImageUrl("https://" + bucket + ".s3." + region + ".amazonaws.com/" + key)
-                    .build();
+            itemMap.putIfAbsent(baseName, Item.builder().itemName(baseName).build());
 
+            Item item = itemMap.get(baseName);
+
+            if (extension.equals("glb")) {
+                item = Item.builder()
+                        .itemName(baseName)
+                        .itemImageUrl(url)
+                        .item2dImageUrl(item.getItem2dImageUrl())
+                        .build();
+            } else if (extension.equals("png")) {
+                item = Item.builder()
+                        .itemName(baseName)
+                        .item2dImageUrl(url)
+                        .itemImageUrl(item.getItemImageUrl())
+                        .build();
+            }
+
+            itemMap.put(baseName, item);
+        }
+
+        for (Item item : itemMap.values()) {
+            if (itemRepository.existsByItemName(item.getItemName())) continue;
             itemRepository.save(item);
         }
     }
