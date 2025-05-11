@@ -103,7 +103,14 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
-        return new UserInfoDto(user.getLoginId(), user.getName(), user.getEmail(), user.getUserCoin());
+                return new UserInfoDto(
+                    user.getLoginId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getUserCoin(),
+                    user.getDetailPreference(),
+                    user.getWorkPace()
+                );
 
     }
 
