@@ -12,6 +12,7 @@ public class UserItemStoreResponseDto {
     private Long id;
     private String name;
     private String imageUrl;
+    private String image2dUrl;
     private boolean hasItem;
 
     public static UserItemStoreResponseDto from(Item item, boolean hasItem) {
@@ -19,6 +20,7 @@ public class UserItemStoreResponseDto {
                 .id(item.getItemId())
                 .name(item.getItemName())
                 .imageUrl(item.getItemImageUrl())
+                .image2dUrl(item.getItem2dImageUrl())
                 .hasItem(hasItem)
                 .build();
     }
