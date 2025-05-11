@@ -88,6 +88,18 @@ public class UserController {
             return ResponseEntity.ok("온보딩 설문조사 완료!");
         }
 
+    @Operation(summary = "사용자 정보 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "아이템 뽑기 성공"),
+            @ApiResponse(responseCode = "400", description = "코인 부족으로 인한 뽑기 실패")
+    })
+    @GetMapping("/info")
+    public ResponseEntity<UserInfoDto> showUserInfo(HttpServletRequest request) {
+        Long userId = userService.getUserIdFromToken(request);
+        UserInfoDto userInfo = userService.showUserInfo(userId);
+        return ResponseEntity.ok(userInfo);
+    }
+
     @Operation(summary = "아이템 뽑기", description = "보유 코인 50 차감 후 아이템 1개를 뽑습니다. 코인이 부족할 경우 실패합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "아이템 뽑기 성공"),
