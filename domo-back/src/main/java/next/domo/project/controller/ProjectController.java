@@ -31,12 +31,13 @@ public class ProjectController {
         @ApiResponse(responseCode = "400", description = "프로젝트 생성 실패")
     })
     @PostMapping
-    public ResponseEntity<ProjectCreateResponseDto> createProject(@RequestBody ProjectCreateRequestDto requestDto) {
-        ProjectCreateResponseDto response = projectService.createProject(requestDto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Long> createProject(@RequestBody ProjectCreateRequestDto requestDto) {
+        Long projectId = projectService.createProject(requestDto);
+        return ResponseEntity.ok(projectId);
     }
 
-    @Operation(summary = "모든 프로젝트 리스트 조회 (이름, 태그명, 데드라인)")
+
+    @Operation(summary = "모든 프로젝트 리스트 조회 (이름, 태그명, 데드라인, 진행률, 설명)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "프로젝트 리스트 조회 성공"),
         @ApiResponse(responseCode = "400", description = "프로젝트 리스트 조회 실패")

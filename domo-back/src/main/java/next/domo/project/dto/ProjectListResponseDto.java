@@ -15,6 +15,8 @@ public class ProjectListResponseDto {
     private String projectName;
     private String projectTagName;
     private LocalDateTime projectDeadline;
+    private Integer projectProgressRate;
+    private String projectDescription;
 
     public static ProjectListResponseDto from(Project project) {
         return ProjectListResponseDto.builder()
@@ -22,6 +24,8 @@ public class ProjectListResponseDto {
                 .projectName(project.getProjectName())
                 .projectTagName(project.getProjectTag().getProjectTagName())
                 .projectDeadline(project.getProjectDeadline())
+                .projectProgressRate(project.getProjectProgressRate())
+                .projectDescription(project.getProjectDescription())
                 .build();
     }
 }
