@@ -18,7 +18,6 @@ public class UserItem {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // ✅ Item 단방향 연관관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
