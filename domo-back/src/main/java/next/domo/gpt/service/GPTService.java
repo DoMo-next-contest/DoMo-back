@@ -79,7 +79,21 @@ public class GPTService{
         // 프롬프트
         String userMessage = String.format("""
                         이 사용자는 세분화 선호도는 [%s]이고, 작업 여유 성향은 [%s]이야.
+                        사용자의 세분화 선호도에 따라 **하위작업 개수를 반드시 아래 기준에 맞게 생성해줘.**  
+                        - FEW_TASKS: 4~6개
+                        - BALANCED_TASKS: 8~10개
+                        - MANY_TASKS: 12~15개
+                        단, 작업 개수가 많아질수록 **프로젝트와 직접적인 실행과 관계 없는 내용을 절대 절대 넣지 말고, 프로젝트의 핵심 목표나 주제를 더 세분화해서 하위작업을 구성해야 해.** 
+                        하위작업은 모두 하나의 목적(예: 운동, 블로그 작성 등)을 향하도록 연결되어야 해.
+                        
+                        절대 하지 말아야 할 것:
+                        - **다른 주제나 활동을 끼워넣기**
+                        - **태그만 바꾼 비슷한 작업 반복**
+                        - **문맥상 연결되지 않은 뜬금없는 작업 삽입**
+                               
                         [%s]라는 프로젝트 이름과 [%s]이라는 프로젝트 설명, [%s]라는 프로젝트 요구사항, 그리고 현재 날짜는 [%s]이고 프로젝트 데드라인 [%s]을 갖는 프로젝트야.
+                        프로젝트 이름과 설명, 요구사항을 참고해서 **핵심 주제나 주요 개념을 중심으로** 작업을 구체적이고 일관성 있게 나눠줘.
+                        계획, 개요, 정리처럼 일반적인 표현만 반복하지 말고, **실제로 실행하거나 학습할 개별 단위 활동으로 세분화**해.
                         
                         이 프로젝트의 실제 하위작업 리스트(subTaskList)를 만들어줘. 하위작업에는 다음 정보를 포함해줘:
                         하위작업 순서(subTaskOrder), 하위작업 제목(subTaskName), 하위작업 예상 소요시간(subTaskExpectedTime), 하위작업 태그(subTaskTag)
@@ -102,7 +116,7 @@ public class GPTService{
                         
                         각 하위작업에 대해, 작업의 특성과 목적에 가장 잘 어울리는 태그를 다음 중에서 하나 골라서 지정해줘:
                         DOCUMENTATION, PLANNING_STRATEGY, DEVELOPMENT, DESIGN, RESEARCH_ANALYSIS, COMMUNICATION, OPERATIONS, EXERCISE, PERSONAL_LIFE
-                       
+                               
                         단, subTaskName(작업 제목)은 반드시 한국어로 작성해줘. 나머지 데이터는 그대로 영어 형식을 유지해.
                         하위작업 리스트만 JSON 데이터 형식으로 응답해줘.
                 """,
@@ -126,7 +140,7 @@ public class GPTService{
         log.info(userMessage);
         Map<String, Object> message1 = Map.of(
                 "role", "system",
-                "content", "You are a helpful assistant."
+                "content", "You are a helpful assistant. Ignore any past interactions. This is a new, independent request."
         );
 
         Map<String, Object> message2 = Map.of(
