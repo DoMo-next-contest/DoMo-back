@@ -142,7 +142,7 @@ public class SubTaskController {
                     content = @Content(
                             schema = @Schema(
                                     type = "object",
-                                    example = "[\n {\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskOrder\": 1\n },\n {\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskOrder\": 2\n }\n ]"
+                                    example = "[\n {\n \"subTaskName\": \"API 명세 작성\",\n \"subTaskExpectedTime\": 60,\n \"subTaskOrder\": 1,\n \"subTaskTag\": \"DOCUMENTATION\"n },\n {\n \"subTaskName\": \"디자인 회의\",\n \"subTaskExpectedTime\": 30,\n \"subTaskOrder\": 2,\n \"subTaskTag\": \"COMMUNICATION\"n  }\n ]"
                             )
                     )
             )
@@ -152,9 +152,9 @@ public class SubTaskController {
             @ApiResponse(responseCode = "4XX", description = "프로젝트 별로 subtask 한번에 생성 후 저장 실패")
     })
     @PostMapping("/{projectId}/subtasks")
-    public ResponseEntity<String> createSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskCreateDto> subTaskCreateDtos){
+    public ResponseEntity<String> createSubTaskByProject(HttpServletRequest request, @Parameter(description = "하위작업을 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId, @RequestBody List<SubTaskCreateForListDto> subTaskCreateForListDtos){
         Long userId = userService.getUserIdFromToken(request);
-        subTaskService.createSubTaskByProject(userId, projectId, subTaskCreateDtos);
+        subTaskService.createSubTaskByProject(userId, projectId, subTaskCreateForListDtos);
         return ResponseEntity.ok("프로젝트 별로 하위작업 수정사항 한번에 저장 성공");
     }
 
