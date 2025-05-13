@@ -12,6 +12,7 @@ import next.domo.user.repository.UserRepository;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.NullAuthoritiesMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -119,6 +120,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
                 .username(myUser.getLoginId())
                 .password(password)
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"))
                 .build();
 
         Authentication authentication =

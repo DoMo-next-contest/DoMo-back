@@ -21,10 +21,10 @@ public class GPTController {
     private final GPTService gptService;
     private final UserService userService;
 
-    @Operation(summary = "GPT로 하위작업 생성")
+    @Operation(summary = "GPT로 하위작업 생성 및 저장")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "GPT로 하위작업 생성 성공"),
-            @ApiResponse(responseCode = "4XX", description = "GPT로 하위작업 생성 실패")
+            @ApiResponse(responseCode = "200", description = "GPT로 하위작업 생성 및 저장 성공"),
+            @ApiResponse(responseCode = "4XX", description = "GPT로 하위작업 생성 및 저장 실패")
     })
     @PostMapping("/{projectId}/subtasks")
     public String createSubTaskByGPT(HttpServletRequest request,  @Parameter(description = "하위작업 생성할 프로젝트 ID", required = true, example = "1") @PathVariable Long projectId) {
@@ -34,8 +34,8 @@ public class GPTController {
 
     @Operation(summary = "GPT로 프로젝트 난이도 예측 및 저장")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "프로젝트 난이도 예측 성공"),
-            @ApiResponse(responseCode = "4XX", description = "예측 실패")
+            @ApiResponse(responseCode = "200", description = "프로젝트 난이도 예측 및 저장 성공"),
+            @ApiResponse(responseCode = "4XX", description = "프로젝트 난이도 예측 및 저장 실패")
     })
     @PostMapping("/{projectId}/predict-level")
     public ProjectLevelType predictProjectLevelByGPT(HttpServletRequest request,

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     boolean existsByProjectTag_ProjectTagId(Long projectTagId);
     List<Project> findByUserUserId(Long userId);
-    Optional<Project> findTopByUserUserIdOrderByProjectIdDesc(Long userId);
+    Optional<Project> findTopByUserUserIdOrderByLastAccessedAtDesc(Long userId);
     List<Project> findByProjectTag_ProjectTagIdIn(List<Long> tagIds, Sort sort);
     List<Project> findAll(Sort sort);
 }

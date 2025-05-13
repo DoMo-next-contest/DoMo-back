@@ -118,7 +118,7 @@ public class GPTService{
                         DOCUMENTATION, PLANNING_STRATEGY, DEVELOPMENT, DESIGN, RESEARCH_ANALYSIS, COMMUNICATION, OPERATIONS, EXERCISE, PERSONAL_LIFE
                                
                         단, subTaskName(작업 제목)은 반드시 한국어로 작성해줘. 나머지 데이터는 그대로 영어 형식을 유지해.
-                        하위작업 리스트만 JSON 데이터 형식으로 응답해줘.
+                        결과는 반드시 다음 JSON 형식으로 줘: { "subTaskList": [ { ... } ] }
                 """,
                 user.getDetailPreference(),
                 user.getWorkPace(),
@@ -166,12 +166,26 @@ public class GPTService{
             // 하위 작업 리스트 추출
             JsonNode subTaskList = objectMapper.readTree(content).path("subTaskList");
             if (subTaskList.isMissingNode() || !subTaskList.isArray()) {
-                throw new RuntimeException("GPT 응답에서 subTaskList가 누락되었습니다.");
+                throw new RuntimeException("GPT 응답에서 subTaskList가 누락되었거나 배열 형식이 아닙니다.");
+            }
+
+            // ✅ 하위작업 실제 저장
+            for (JsonNode node : subTaskList) {
+                SubTask subTask = SubTask.builder()
+                        .project(project)
+                        .subTaskOrder(node.path("subTaskOrder").asInt())
+                        .subTaskName(node.path("subTaskName").asText())
+                        .subTaskExpectedTime(node.path("subTaskExpectedTime").asInt())
+                        .subTaskTag(SubTaskTag.valueOf(node.path("subTaskTag").asText()))
+                        .subTaskIsDone(false)
+                        .build();
+                subTaskRepository.save(subTask);
             }
 
             return content;
         } catch (Exception e) {
-            throw new RuntimeException("GPT 응답 파싱 실패", e);
+                log.error("GPT 응답 파싱 실패", e);
+                throw new RuntimeException("GPT 응답 파싱 실패", e);
         }
     }
 
@@ -244,7 +258,8 @@ public class GPTService{
 
             return level;
         } catch (Exception e) {
-            throw new RuntimeException("GPT 난이도 예측 실패", e);
+                log.error("GPT 난이도 예측 실패", e);
+                throw new RuntimeException("GPT 난이도 예측 실패", e);
         }
     }
 }
