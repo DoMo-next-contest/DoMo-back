@@ -37,7 +37,7 @@ public class ProjectController {
     }
 
 
-    @Operation(summary = "모든 프로젝트 리스트 조회 (이름, 태그명, 데드라인, 진행률, 설명)")
+    @Operation(summary = "모든 프로젝트 리스트 조회 (프로젝트Id, 프로젝트명, 태그명, 데드라인, 진행률, 설명, 완료여부)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "프로젝트 리스트 조회 성공"),
         @ApiResponse(responseCode = "400", description = "프로젝트 리스트 조회 실패")
@@ -81,14 +81,14 @@ public class ProjectController {
         return ResponseEntity.ok("프로젝트 삭제 성공!");
     }
 
-    @Operation(summary = "가장 최근 접속한 프로젝트 조회 (이름, 태그명)")
+    @Operation(summary = "가장 최근 접속한 프로젝트 조회 (프로젝트Id, 프로젝트명, 태그명, 데드라인, 진행률, 설명, 완료여부)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "최근 프로젝트 조회 성공"),
         @ApiResponse(responseCode = "400", description = "최근 프로젝트 조회 실패")
     })
     @GetMapping("/recent")
-    public ResponseEntity<ProjectRecentResponseDto> getRecentProject() {
-        ProjectRecentResponseDto recent = projectService.getRecentProject();
+    public ResponseEntity<ProjectListResponseDto> getRecentProject() {
+        ProjectListResponseDto recent = projectService.getRecentProject();
         return ResponseEntity.ok(recent);
     }
 
@@ -131,7 +131,7 @@ public class ProjectController {
         return ResponseEntity.ok(new ProjectCompletionResponseDto("프로젝트 완료 및 코인 계산 성공!", coin));
     }
 
-    @Operation(summary = "완료된 프로젝트 리스트 조회 (이름, 태그명, 데드라인, 진행률, 설명)")
+    @Operation(summary = "완료된 프로젝트 리스트 조회 (프로젝트Id, 프로젝트명, 태그명, 데드라인, 진행률, 설명, 완료여부)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "완료된 프로젝트 리스트 조회 성공"),
         @ApiResponse(responseCode = "400", description = "완료된 프로젝트 리스트 조회 실패")

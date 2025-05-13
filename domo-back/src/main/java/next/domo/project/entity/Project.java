@@ -45,6 +45,8 @@ public class Project {
 
     private Integer projectCoin;
 
+    private LocalDateTime lastAccessedAt;
+
     public void updateProject(String projectName, String projectDescription, String projectRequirement, LocalDateTime projectDeadline, ProjectTag projectTag) {
         this.projectName = projectName;
         this.projectDescription = projectDescription;
@@ -114,5 +116,9 @@ public class Project {
     
     public String getProjectDescription() {
         return this.projectDescription;
+    }
+
+    public void updateLastAccessedAt() {
+        this.lastAccessedAt = LocalDateTime.now();
     }
 }
