@@ -96,10 +96,10 @@ public class SubTaskService {
     }
 
     // subtask 생성 후 한번에 저장
-    public void createSubTaskByProject(Long userId, Long projectId, List<SubTaskCreateDto> subTaskCreateDtos) {
+    public void createSubTaskByProject(Long userId, Long projectId, List<SubTaskCreateForListDto> subTaskCreateForListDtos) {
         Project project = validateProjectOwner(userId, projectId);
 
-        for (SubTaskCreateDto dto : subTaskCreateDtos) {
+        for (SubTaskCreateForListDto dto : subTaskCreateForListDtos) {
             SubTask subTask = dto.toEntity(project);
             subTaskRepository.save(subTask);
         }

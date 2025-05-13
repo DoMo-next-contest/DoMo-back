@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.lang.IllegalStateException;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +53,7 @@ public class ProjectService {
                 .projectExpectedTime(0) // 하위 작업으로 합산 예정
                 .projectProgressRate(0)
                 .projectStatus(ProjectStatus.IN_PROGRESS)
+                .lastAccessedAt(LocalDateTime.now())
                 .build();
 
         projectRepository.save(project);
@@ -61,20 +63,18 @@ public class ProjectService {
     public List<ProjectListResponseDto> getAllProjects() {
         Long userId = userService.getCurrentUserId();
         return projectRepository.findByUserUserId(userId).stream()
-                .map(project -> new ProjectListResponseDto(
-                        project.getProjectId(),
-                        project.getProjectName(),
-                        project.getProjectTag().getProjectTagName(),
-                        project.getProjectDeadline(),
-                        project.getProjectProgressRate(),
-                        project.getProjectDescription()
-                )).collect(Collectors.toList());
+        .map(ProjectListResponseDto::from)
+        .collect(Collectors.toList());
     }
 
 
     public ProjectDetailResponseDto getProjectDetail(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
+
+        project.updateLastAccessedAt();
+        projectRepository.save(project);
+
         return new ProjectDetailResponseDto(
                 project.getProjectName(),
                 project.getProjectDescription(),
@@ -118,15 +118,11 @@ public class ProjectService {
         projectRepository.deleteById(projectId);
     }
 
-    public ProjectRecentResponseDto getRecentProject() {
+    public ProjectListResponseDto getRecentProject() {
         Long userId = userService.getCurrentUserId();
-        Project recent = projectRepository.findTopByUserUserIdOrderByProjectIdDesc(userId)
+        Project recent = projectRepository.findTopByUserUserIdOrderByLastAccessedAtDesc(userId)
                 .orElseThrow(() -> new RuntimeException("최근 프로젝트가 없습니다."));
-
-        return new ProjectRecentResponseDto(
-                recent.getProjectName(),
-                recent.getProjectTag().getProjectTagName()
-        );
+        return ProjectListResponseDto.from(recent);
     }
 
     public void updateProjectExpectedTime(Long projectId) {
@@ -175,7 +171,7 @@ public class ProjectService {
 
         // 예상 소요 시간 (분 → 시간으로 환산)
         Integer expectedMinutes = project.getProjectExpectedTime();
-        if (expectedMinutes == null) expectedMinutes = 0;
+        if (expectedMinutes == null || expectedMinutes == 0) throw new IllegalStateException("예상 소요 시간이 0입니다.");
         double expectedHours = expectedMinutes / 60.0;
 
         // 기본 점수 결정
@@ -210,14 +206,8 @@ public class ProjectService {
         Long userId = userService.getCurrentUserId();
         return projectRepository.findByUserUserId(userId).stream()
                 .filter(project -> project.getProjectStatus() == ProjectStatus.DONE)
-                .map(project -> new ProjectListResponseDto(
-                        project.getProjectId(),
-                        project.getProjectName(),
-                        project.getProjectTag().getProjectTagName(),
-                        project.getProjectDeadline(),
-                        project.getProjectProgressRate(),
-                        project.getProjectDescription()
-                )).collect(Collectors.toList());
+                .map(ProjectListResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     public List<ProjectListResponseDto> getProjectListResponses(List<Long> projectTagIds, String sortBy) {
