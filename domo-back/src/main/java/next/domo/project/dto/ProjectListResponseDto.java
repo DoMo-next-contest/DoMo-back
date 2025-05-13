@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import next.domo.project.entity.Project;
+import next.domo.project.entity.ProjectStatus;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ public class ProjectListResponseDto {
     private LocalDateTime projectDeadline;
     private Integer projectProgressRate;
     private String projectDescription;
+    private boolean completed;
 
     public static ProjectListResponseDto from(Project project) {
         return ProjectListResponseDto.builder()
@@ -26,6 +28,7 @@ public class ProjectListResponseDto {
                 .projectDeadline(project.getProjectDeadline())
                 .projectProgressRate(project.getProjectProgressRate())
                 .projectDescription(project.getProjectDescription())
+                .completed(project.getProjectStatus() == ProjectStatus.DONE)
                 .build();
     }
 }
