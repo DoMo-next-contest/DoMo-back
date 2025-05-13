@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import next.domo.file.entity.Item;
 import next.domo.file.repository.ItemRepository;
-import next.domo.user.dto.UserItemRequestDto;
 import next.domo.user.dto.UserItemStoreResponseDto;
 import next.domo.user.entity.User;
 import next.domo.user.entity.UserItem;
@@ -22,11 +21,11 @@ public class UserItemService {
     private final UserItemRepository userItemRepository;
 
     @Transactional
-    public void addItemToUser(Long userId, UserItemRequestDto userItemRequestDto) {
+    public void addItemToUser(Long userId, Long itemId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        Item item = itemRepository.findById(userItemRequestDto.getItemId())
+        Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
 
         UserItem userItem = UserItem.builder()
