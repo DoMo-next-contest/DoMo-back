@@ -45,7 +45,8 @@ public class Project {
 
     private Integer projectCoin;
 
-    private LocalDateTime lastAccessedAt;
+    @Column(nullable = false)
+    private LocalDateTime lastAccessedAt = LocalDateTime.now();
 
     public void updateProject(String projectName, String projectDescription, String projectRequirement, LocalDateTime projectDeadline, ProjectTag projectTag) {
         this.projectName = projectName;

@@ -87,8 +87,11 @@ public class ProjectController {
         @ApiResponse(responseCode = "400", description = "최근 프로젝트 조회 실패")
     })
     @GetMapping("/recent")
-    public ResponseEntity<ProjectListResponseDto> getRecentProject() {
+    public ResponseEntity<?> getRecentProject() {
         ProjectListResponseDto recent = projectService.getRecentProject();
+        if (recent == null) {
+            return ResponseEntity.ok("최근 접속한 프로젝트가 없습니다.");
+        }
         return ResponseEntity.ok(recent);
     }
 

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import next.domo.file.entity.Item;
 
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -22,5 +24,6 @@ public class UserItem {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
+    private LocalDateTime equippedAt;
 
 }
