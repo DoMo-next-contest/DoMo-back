@@ -2,6 +2,7 @@ package next.domo.user.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import next.domo.file.dto.ItemResponseDto;
 import next.domo.file.entity.Item;
 import next.domo.file.repository.ItemRepository;
 import next.domo.user.dto.UserItemStoreResponseDto;
@@ -11,6 +12,7 @@ import next.domo.user.repository.UserItemRepository;
 import next.domo.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class UserItemService {
         UserItem userItem = UserItem.builder()
                 .user(user)
                 .item(item)
+                .equippedAt(LocalDateTime.now())
                 .build();
 
         userItemRepository.save(userItem);
@@ -43,5 +46,16 @@ public class UserItemService {
         return allItems.stream()
                 .map(item -> UserItemStoreResponseDto.from(item, ownedItemIds.contains(item.getItemId())))
                 .toList();
+    }
+
+    public ItemResponseDto getLatestEquippedItem(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        UserItem latestUserItem = userItemRepository.findTopByUserOrderByEquippedAtDesc(user)
+                .orElseThrow(() -> new IllegalStateException("최근에 착용한 아이템이 없습니다."));
+
+        Item item = latestUserItem.getItem();
+        return ItemResponseDto.from(item);
     }
 }
