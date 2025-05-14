@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import next.domo.file.dto.ItemResponseDto;
 import next.domo.user.dto.*;
 import next.domo.user.service.UserService;
 
@@ -107,14 +108,9 @@ public class UserController {
     })
     @PutMapping("/draw")
     @SecurityRequirement(name = "accessToken")
-    public ResponseEntity<String> drawItem(HttpServletRequest request) {
+    public ResponseEntity<ItemResponseDto> drawItem(HttpServletRequest request) {
         Long userId = userService.getUserIdFromToken(request);
-        try {
-            userService.drawItem(userId);
-            return ResponseEntity.ok("아이템 뽑기 성공!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        return ResponseEntity.ok(userService.drawItem(userId));
     }
 
     @Operation(summary = "보유 코인 조회")

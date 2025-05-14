@@ -3,14 +3,19 @@ package next.domo.user.service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import next.domo.file.dto.ItemResponseDto;
+import next.domo.file.entity.Item;
+import next.domo.file.repository.ItemRepository;
 import next.domo.jwt.JwtProvider;
 import next.domo.project.entity.ProjectTag;
 import next.domo.project.repository.ProjectTagRepository;
 import next.domo.user.dto.*;
 import next.domo.user.entity.User;
+import next.domo.user.entity.UserItem;
 import next.domo.user.enums.OnboardingTagType;
 import next.domo.user.enums.TaskDetailPreference;
 import next.domo.user.enums.WorkPace;
+import next.domo.user.repository.UserItemRepository;
 import next.domo.user.repository.UserRepository;
 import next.domo.upload.service.S3Service;
 
@@ -21,7 +26,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +44,8 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final S3Service s3Service;
+    private final ItemRepository itemRepository;
+    private final UserItemRepository userItemRepository;
 
     public Long getUserIdFromToken(HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization").substring(7); // "Bearer "를 제외한 토큰
@@ -157,7 +170,7 @@ public class UserService {
     }
 
     @Transactional
-    public void drawItem(Long userId) {
+    public ItemResponseDto drawItem(Long userId) {
         User user = userRepository.findById(userId)
         .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
@@ -167,9 +180,26 @@ public class UserService {
 
         user.useCoin(50);
 
-        // TODO: 아이템 생성 로직 (랜덤 or 지정 방식)
+        List<Long> availableIds = LongStream.rangeClosed(1, 11)
+                .filter(id -> id != 9) // 제외할 번호
+                .boxed()
+                .collect(Collectors.toList());
+
+        long randomItemId = availableIds.get(new Random().nextInt(availableIds.size()));
+
+        Item selectedItem = itemRepository.findById(randomItemId)
+                .orElseThrow(() -> new IllegalStateException("랜덤 아이템이 존재하지 않습니다."));
+
+        UserItem userItem = UserItem.builder()
+                .user(user)
+                .item(selectedItem)
+                .equippedAt(LocalDateTime.now()) // 필요 시
+                .build();
+        userItemRepository.save(userItem);
 
         userRepository.save(user);
+
+        return ItemResponseDto.from(selectedItem);
     }
 
     @Transactional
