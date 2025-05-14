@@ -73,7 +73,6 @@ public class ProjectService {
                 .orElseThrow(() -> new RuntimeException("프로젝트를 찾을 수 없습니다."));
 
         project.updateLastAccessedAt();
-        projectRepository.save(project);
 
         return new ProjectDetailResponseDto(
                 project.getProjectName(),
@@ -120,9 +119,9 @@ public class ProjectService {
 
     public ProjectListResponseDto getRecentProject() {
         Long userId = userService.getCurrentUserId();
-        Project recent = projectRepository.findTopByUserUserIdOrderByLastAccessedAtDesc(userId)
-                .orElseThrow(() -> new RuntimeException("최근 프로젝트가 없습니다."));
-        return ProjectListResponseDto.from(recent);
+        return projectRepository.findTopByUserUserIdOrderByLastAccessedAtDesc(userId)
+                .map(ProjectListResponseDto::from)
+                .orElse(null); // ❗ 예외 대신 null 반환
     }
 
     public void updateProjectExpectedTime(Long projectId) {
