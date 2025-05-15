@@ -16,4 +16,5 @@ public interface UserItemRepository extends JpaRepository<UserItem, Long> {
     Optional<UserItem> findTopByUserOrderByEquippedAtDesc(User user);
 
     List<UserItem> findAllByUser(User user);
+
 }

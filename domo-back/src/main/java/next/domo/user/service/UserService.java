@@ -204,7 +204,6 @@ public class UserService {
                 .equippedAt(LocalDateTime.now()) // 필요 시
                 .build();
         userItemRepository.save(userItem);
-
         userRepository.save(user);
 
         return ItemResponseDto.from(selectedItem);
