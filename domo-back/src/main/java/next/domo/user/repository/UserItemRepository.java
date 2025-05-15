@@ -17,5 +17,4 @@ public interface UserItemRepository extends JpaRepository<UserItem, Long> {
 
     List<UserItem> findAllByUser(User user);
 
-
 }
