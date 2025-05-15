@@ -180,12 +180,20 @@ public class UserService {
 
         user.useCoin(50);
 
-        List<Long> availableIds = LongStream.rangeClosed(1, 11)
-                .filter(id -> id != 9) // 제외할 번호
+        List<Long> ownedItemIds = userItemRepository.findAllByUser(user).stream()
+                .map(userItem -> userItem.getItem().getItemId())
+                .collect(Collectors.toList());
+
+        List<Long> candidateIds = LongStream.rangeClosed(1, 11)
+                .filter(id -> id != 9 && !ownedItemIds.contains(id)) // 9와 중복 제거
                 .boxed()
                 .collect(Collectors.toList());
 
-        long randomItemId = availableIds.get(new Random().nextInt(availableIds.size()));
+        if (candidateIds.isEmpty()) {
+            throw new IllegalStateException("더 이상 뽑을 수 있는 새로운 아이템이 없습니다.");
+        }
+
+        long randomItemId = candidateIds.get(new Random().nextInt(candidateIds.size()));
 
         Item selectedItem = itemRepository.findById(randomItemId)
                 .orElseThrow(() -> new IllegalStateException("랜덤 아이템이 존재하지 않습니다."));
@@ -196,7 +204,6 @@ public class UserService {
                 .equippedAt(LocalDateTime.now()) // 필요 시
                 .build();
         userItemRepository.save(userItem);
-
         userRepository.save(user);
 
         return ItemResponseDto.from(selectedItem);
