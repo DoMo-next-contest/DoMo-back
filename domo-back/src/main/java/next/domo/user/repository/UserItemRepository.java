@@ -14,4 +14,6 @@ public interface UserItemRepository extends JpaRepository<UserItem, Long> {
     List<Long> findItemIdsByUserId(@Param("userId") Long userId);
 
     Optional<UserItem> findTopByUserOrderByEquippedAtDesc(User user);
+
+    List<UserItem> findAllByUser(User user);
 }
