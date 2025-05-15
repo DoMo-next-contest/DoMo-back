@@ -3,6 +3,8 @@ package next.domo.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import next.domo.subtask.entity.SubTaskTag;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -18,6 +20,7 @@ public class UserTag {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @Column(nullable = false)

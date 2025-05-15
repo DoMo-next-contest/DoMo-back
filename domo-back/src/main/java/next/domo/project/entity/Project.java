@@ -27,6 +27,7 @@ public class Project {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_tag_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private ProjectTag projectTag;
 
     private String projectName;
