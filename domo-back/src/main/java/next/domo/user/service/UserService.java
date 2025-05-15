@@ -127,12 +127,17 @@ public class UserService {
 
     }
 
+    @Transactional
     public void deleteUser() {
         Long userId = getCurrentUserId();
-    
+        
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-    
+        .orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        
+        // 1. 연관 데이터 먼저 삭제
+        projectTagRepository.deleteAllByUser(user);
+
+        // 2. User 삭제
         userRepository.delete(user);
     }
 
