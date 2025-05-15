@@ -184,7 +184,7 @@ public class UserService {
                 .map(userItem -> userItem.getItem().getItemId())
                 .collect(Collectors.toList());
 
-        List<Long> candidateIds = LongStream.rangeClosed(1, 11)
+        List<Long> candidateIds = LongStream.rangeClosed(1, 12)
                 .filter(id -> id != 9 && !ownedItemIds.contains(id)) // 9와 중복 제거
                 .boxed()
                 .collect(Collectors.toList());
