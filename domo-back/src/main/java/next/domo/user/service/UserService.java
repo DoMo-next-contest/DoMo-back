@@ -180,7 +180,7 @@ public class UserService {
 
         user.useCoin(50);
 
-        List<Long> availableIds = LongStream.rangeClosed(1, 11)
+        List<Long> availableIds = LongStream.rangeClosed(1, 12)
                 .filter(id -> id != 9) // 제외할 번호
                 .boxed()
                 .collect(Collectors.toList());
