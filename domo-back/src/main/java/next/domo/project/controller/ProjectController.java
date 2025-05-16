@@ -81,7 +81,7 @@ public class ProjectController {
         return ResponseEntity.ok("프로젝트 삭제 성공!");
     }
 
-    @Operation(summary = "가장 최근 접속한 프로젝트 조회 (프로젝트Id, 프로젝트명, 태그명, 데드라인, 진행률, 설명, 완료여부)")
+    @Operation(summary = "가장 최근 접속한 미완료 프로젝트 조회 (프로젝트Id, 프로젝트명, 태그명, 데드라인, 진행률, 설명, 완료여부)")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "최근 프로젝트 조회 성공"),
         @ApiResponse(responseCode = "400", description = "최근 프로젝트 조회 실패")
@@ -90,7 +90,7 @@ public class ProjectController {
     public ResponseEntity<?> getRecentProject() {
         ProjectListResponseDto recent = projectService.getRecentProject();
         if (recent == null) {
-            return ResponseEntity.ok("최근 접속한 프로젝트가 없습니다.");
+            return ResponseEntity.ok("최근 접속한 미완료 프로젝트가 없습니다.");
         }
         return ResponseEntity.ok(recent);
     }

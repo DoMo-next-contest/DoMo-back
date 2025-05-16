@@ -119,9 +119,10 @@ public class ProjectService {
 
     public ProjectListResponseDto getRecentProject() {
         Long userId = userService.getCurrentUserId();
-        return projectRepository.findTopByUserUserIdOrderByLastAccessedAtDesc(userId)
+        return projectRepository
+                .findTopByUserIdAndNotDoneOrderByLastAccessedAtDesc(userId)
                 .map(ProjectListResponseDto::from)
-                .orElse(null); // ❗ 예외 대신 null 반환
+                .orElse(null); // 완료되지 않은 프로젝트가 없을 경우 null 반환
     }
 
     public void updateProjectExpectedTime(Long projectId) {
